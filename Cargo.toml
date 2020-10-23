@@ -1,5 +1,5 @@
 [package]
-name = "bloom-filter-rs"
+name = "bloom-filter"
 version = "0.1.0"
 authors = ["Helge Wrede <helge.wrede@protonmail.com>", "Alexander Schultheiß <alexanderschultheiss@pm.me>", "Lukas Simon <lukas.b.simon@gmail.com>"]
 edition = "2018"
