@@ -1,4 +1,4 @@
-use std::hash::{Hash, Hasher};
+use std::{fmt::Debug, hash::{Hash, Hasher}};
 
 // capacity
 // probability false positive
@@ -17,6 +17,11 @@ where
     }
 }
 
+impl Debug for BloomFilter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Bloomer: {:?}", self.hits)
+    }
+}
 pub struct BloomFilter {
     hashers: Vec<Box<dyn ResettableHasher>>,
     hits: Vec<bool>,
@@ -54,6 +59,7 @@ impl BloomFilter {
         T: Hash,
     {
         for (i, hasher) in self.hashers.iter_mut().enumerate() {
+            hasher.reset();
             data.hash(hasher);
             if !self.hits[BloomFilter::index(i, self.capacity, hasher.finish())] {
                 return false;
