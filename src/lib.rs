@@ -14,7 +14,7 @@ pub use seeded_bloom_filter::SeededBloomFilter;
  DefaultBloomFilter is implemented as a type definition `type DefaultBloomFilter = BloomFilter<ahash::AHasher, DefaultHasher>;`
  # Examples
  ```
- use bloom_filter::DefaultBloomFilter;
+ use bloom_filter::{DefaultBloomFilter,BloomFilter};
 
  fn simple_bloom_filter_test() {
      let desired_capacity = 1_000_000;
