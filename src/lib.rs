@@ -1,4 +1,8 @@
-use std::{fmt::Debug, hash::{Hash, Hasher}};
+use std::{
+    fmt::Debug,
+    hash::{Hash, Hasher},
+};
+mod bitset;
 
 // capacity
 // probability false positive
