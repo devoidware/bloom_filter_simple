@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 use std::{
+    collections::hash_map::DefaultHasher,
     fmt::Debug,
     hash::{Hash, Hasher},
 };
@@ -27,20 +28,23 @@ impl Debug for BloomFilter {
         write!(f, "Bloomer: {:?}", self.hits)
     }
 }
+
 pub struct BloomFilter {
-    hashers: Vec<Box<dyn ResettableHasher>>,
+    hasher: Box<dyn ResettableHasher>,
+    hash_count: usize,
     hits: Vec<bool>,
     capacity: usize,
-    count: usize,
+    element_count: usize,
 }
 
 impl BloomFilter {
-    pub fn new(capacity: usize, hashers: Vec<Box<dyn ResettableHasher>>) -> Self {
+    pub fn new(capacity: usize, hash_count: usize) -> Self {
         Self {
-            hits: vec![false; capacity * hashers.len()],
-            hashers,
+            hits: vec![false; capacity * hash_count],
+            hasher: Box::new(DefaultHasher::default()),
+            hash_count,
             capacity,
-            count: 0,
+            element_count: 0,
         }
     }
 }
@@ -50,37 +54,53 @@ impl BloomFilter {
     where
         T: Hash,
     {
-        for (i, hasher) in self.hashers.iter_mut().enumerate() {
-            hasher.reset();
-            data.hash(hasher);
-            self.hits[BloomFilter::index(i, self.capacity, hasher.finish())] = true;
+        let (hash_a, hash_b) = self.generate_hashes(&data);
+
+        for i in 0..self.hash_count {
+            self.hits[Self::index(i, self.capacity, hash_a, hash_b)] = true;
         }
 
-        self.count += 1;
+        self.element_count += 1;
     }
 
     pub fn check<T>(&mut self, data: &T) -> bool
     where
         T: Hash,
     {
-        for (i, hasher) in self.hashers.iter_mut().enumerate() {
-            hasher.reset();
-            data.hash(hasher);
-            if !self.hits[BloomFilter::index(i, self.capacity, hasher.finish())] {
+        let (hash_a, hash_b) = self.generate_hashes(data);
+
+        for i in 0..self.hash_count {
+            if !self.hits[Self::index(i, self.capacity, hash_a, hash_b)] {
                 return false;
             }
         }
+
         return true;
     }
 
     pub fn false_positive_probability(&self) -> f64 {
         (1.0 - std::f64::consts::E
-            .powf(-(self.hashers.len() as f64) * self.count as f64 / self.capacity as f64))
+            .powf(-(self.hash_count as f64) * self.element_count as f64 / self.capacity as f64))
         .powf(self.capacity as f64)
     }
 
-    fn index(i: usize, capacity: usize, hash: u64) -> usize {
-        i * capacity + hash as usize % capacity
+    fn generate_hashes<T>(&mut self, data: &T) -> (u64, u64)
+    where
+        T: Hash,
+    {
+        data.hash(&mut self.hasher);
+        let hash_a = self.hasher.finish();
+        self.hasher.reset();
+
+        hash_a.hash(&mut self.hasher);
+        let hash_b = self.hasher.finish();
+        self.hasher.reset();
+
+        (hash_a, hash_b)
+    }
+
+    fn index(i: usize, capacity: usize, hash_a: u64, hash_b: u64) -> usize {
+        i * capacity + (hash_a.wrapping_add(i as u64)).wrapping_mul(hash_b) as usize % capacity
     }
 }
 
