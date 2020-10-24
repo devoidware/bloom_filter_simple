@@ -324,6 +324,7 @@ fn test_bloom_filter_with_strings() {
 }
 
 #[test]
+#[ignore]
 fn insert_and_check_its_there_with_millions_of_values() {
     let n_values = 10_000_000;
     let mut bloomer = DefaultBloomFilter::new(n_values, 0.001);
