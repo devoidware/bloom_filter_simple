@@ -5,7 +5,19 @@ pub struct Bitset {
 
 impl Bitset {
     pub fn new(length: usize) -> Self {
-        todo!()
+        if length == 0 {
+            panic!("A Bitset should contain at least one element")
+        }
+        let byte_length = if length % 8 == 0 {
+            length / 8
+        } else {
+            1 + length / 8
+        };
+
+        Bitset {
+            length,
+            bytes: vec![0; byte_length],
+        }
     }
 
     pub fn len(&self) -> usize {
@@ -13,11 +25,34 @@ impl Bitset {
     }
 
     pub fn set(&mut self, index: usize, value: bool) {
-        todo!()
+        if index >= self.len() {
+            panic!(
+                "index out of bounds: the len is {} but the index is {}",
+                self.len(),
+                index,
+            )
+        }
+        let byte_index = index / 8;
+        let mut mask = 0x01 << index % 8;
+        if value {
+            self.bytes[byte_index] |= mask;
+        } else {
+            mask = !mask;
+            self.bytes[byte_index] &= mask;
+        }
     }
 
     pub fn get(&self, index: usize) -> bool {
-        todo!()
+        if index >= self.len() {
+            panic!(
+                "index out of bounds: the len is {} but the index is {}",
+                self.len(),
+                index,
+            )
+        }
+        let byte_index = index / 8;
+        let mask = 0x01 << index % 8;
+        self.bytes[byte_index] & mask == mask
     }
 }
 
@@ -78,13 +113,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "out of range")]
+    #[should_panic(expected = "out of bounds")]
     fn must_set_with_correct_index() {
         Bitset::new(5).set(5, true);
     }
 
     #[test]
-    #[should_panic(expected = "out of range")]
+    #[should_panic(expected = "out of bounds")]
     fn must_get_with_correct_index() {
         Bitset::new(12).get(12);
     }
