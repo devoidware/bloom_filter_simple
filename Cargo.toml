@@ -10,3 +10,4 @@ edition = "2018"
 
 [dev-dependencies]
 fnv = "1.0.7"
+ahash = "0.5.6"

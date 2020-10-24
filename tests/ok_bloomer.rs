@@ -4,7 +4,7 @@ use bloom_filter::BloomFilter;
 
 #[test]
 fn bloomer() {
-    let mut bloomer: BloomFilter<DefaultHasher, fnv::FnvHasher> = BloomFilter::new(3, 0.7);
+    let mut bloomer: BloomFilter<DefaultHasher, ahash::AHasher> = BloomFilter::new(3, 0.7);
 
     println!("Bloomer before insert: {:?}", bloomer);
     println!("Probability: {}", bloomer.false_positive_probability());
@@ -28,7 +28,7 @@ fn false_positive_probability_default() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
     let relative_error_margin = 0.001;
-    let bloomer: BloomFilter<DefaultHasher, fnv::FnvHasher> =
+    let bloomer: BloomFilter<DefaultHasher, DefaultHasher> =
         BloomFilter::new(desired_capacity, false_positive_probability);
 
     test_bloom_filter_probability(
@@ -43,8 +43,24 @@ fn false_positive_probability_default() {
 fn false_positive_probability_test_fnv() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
-    let relative_error_margin = 0.30;
+    let relative_error_margin = 0.001;
     let bloomer: BloomFilter<DefaultHasher, fnv::FnvHasher> =
+        BloomFilter::new(desired_capacity, false_positive_probability);
+
+    test_bloom_filter_probability(
+        desired_capacity,
+        false_positive_probability,
+        bloomer,
+        relative_error_margin,
+    );
+}
+
+#[test]
+fn false_positive_probability_ahash() {
+    let desired_capacity = 1_000_000;
+    let false_positive_probability = 0.001;
+    let relative_error_margin = 0.001;
+    let bloomer: BloomFilter<DefaultHasher, ahash::AHasher> =
         BloomFilter::new(desired_capacity, false_positive_probability);
 
     test_bloom_filter_probability(
