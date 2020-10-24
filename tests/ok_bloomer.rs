@@ -26,33 +26,47 @@ fn bloomer() {
 #[test]
 fn false_positive_probability_default() {
     let desired_capacity = 1_000_000;
-    let false_positive_probability = 0.25;
+    let false_positive_probability = 0.001;
+    let relative_error_margin = 0.001;
     let bloomer: BloomFilter<DefaultHasher> =
         BloomFilter::new(desired_capacity, false_positive_probability);
 
-    test_bloom_filter_probability(desired_capacity, false_positive_probability, bloomer);
+    test_bloom_filter_probability(
+        desired_capacity,
+        false_positive_probability,
+        bloomer,
+        relative_error_margin,
+    );
 }
 
 #[test]
 fn false_positive_probability_test_fnv() {
     let desired_capacity = 1_000_000;
-    let false_positive_probability = 0.25;
+    let false_positive_probability = 0.001;
+    let relative_error_margin = 0.30;
     let bloomer: BloomFilter<fnv::FnvHasher> =
         BloomFilter::new(desired_capacity, false_positive_probability);
 
-    test_bloom_filter_probability(desired_capacity, false_positive_probability, bloomer);
+    test_bloom_filter_probability(
+        desired_capacity,
+        false_positive_probability,
+        bloomer,
+        relative_error_margin,
+    );
 }
 
 fn test_bloom_filter_probability<H>(
     desired_capacity: usize,
     false_positive_probability: f64,
     mut bloomer: BloomFilter<H>,
+    relative_error_margin: f64,
 ) where
     H: Hasher + Default,
 {
+    let allowed_probability = false_positive_probability * (1.0 + relative_error_margin);
     for i in 0..desired_capacity {
         bloomer.insert(i);
-        assert!(bloomer.false_positive_probability() < false_positive_probability);
+        assert!(bloomer.false_positive_probability() < allowed_probability);
     }
 
     let true_checks = (0..(desired_capacity * 2))
@@ -68,12 +82,14 @@ fn test_bloom_filter_probability<H>(
     println!("Calculated hash count: {}", bloomer.hash_count());
     println!("Positive check count: {}", true_checks);
     println!(
-        "Calculated false positive probability: {}",
-        bloomer.false_positive_probability()
+        "Calculated false positive probability: {} ({})",
+        bloomer.false_positive_probability(),
+        allowed_probability,
     );
     println!(
-        "Tested false positive probability: {}",
-        (true_checks as f64 - desired_capacity as f64) / desired_capacity as f64
+        "Tested false positive probability: {} ({})",
+        (true_checks as f64 - desired_capacity as f64) / desired_capacity as f64,
+        allowed_probability
     );
-    assert!(true_checks < (desired_capacity as f64 * (1.0 + false_positive_probability)) as usize);
+    assert!(true_checks < (desired_capacity as f64 * (1.0 + allowed_probability)) as usize);
 }
