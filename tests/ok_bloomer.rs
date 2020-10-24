@@ -303,3 +303,36 @@ fn test_seeded_bloom_filter_probability(
     );
     assert!(true_checks < (desired_capacity as f64 * (1.0 + allowed_probability)) as usize);
 }
+
+#[test]
+fn test_bloom_filter_with_strings() {
+    let mut bloomer = DefaultBloomFilter::new(3, 0.001);
+
+    bloomer.insert("This");
+    bloomer.insert("is");
+    bloomer.insert("a");
+    bloomer.insert("simple");
+    bloomer.insert("test");
+    bloomer.insert("!");
+
+    assert_eq!(false, bloomer.check(&"Not"));
+    assert_eq!(true, bloomer.check(&"a"));
+    assert_eq!(false, bloomer.check(&"single"));
+    assert_eq!(false, bloomer.check(&"problem"));
+    assert_eq!(false, bloomer.check(&"found"));
+    assert_eq!(true, bloomer.check(&"!"));
+}
+
+#[test]
+fn insert_and_check_its_there_with_millions_of_values() {
+    let n_values = 10_000_000;
+    let mut bloomer = DefaultBloomFilter::new(n_values, 0.001);
+
+    for i in 0..n_values {
+        bloomer.insert(i);
+    }
+
+    for i in 0..n_values {
+        assert!(bloomer.check(&i));
+    }
+}
