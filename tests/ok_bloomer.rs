@@ -89,6 +89,7 @@ fn false_positive_probability_xx_default() {
     );
 }
 
+#[test]
 fn false_positive_probability_random_default() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
