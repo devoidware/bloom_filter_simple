@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 use std::{
+    collections::hash_map::DefaultHasher,
     fmt::Debug,
     hash::{Hash, Hasher},
     marker::PhantomData,
@@ -7,6 +8,8 @@ use std::{
 
 mod bitset;
 use bitset::Bitset;
+
+pub type DefaultBloomFilter = BloomFilter<DefaultHasher, DefaultHasher>;
 
 pub struct BloomFilter<H1, H2>
 where
