@@ -10,4 +10,5 @@ Cargo.lock
 **/*.rs.bk
 
 # JetBrains IDEs
-.idea
+/.idea/
+/.vscode/
