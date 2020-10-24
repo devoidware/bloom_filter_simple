@@ -1,3 +1,14 @@
+//! This library offers different implementations for a bloom filter.
+//!
+//! Taken from Wikipedia:
+//!
+//! A Bloom filter is a space-efficient probabilistic data structure, conceived by Burton Howard Bloom in 1970, that is used to
+//! test whether an element is a member of a set. False positive matches are possible, but false negatives are not – in other
+//! words, a query returns either "possibly in set" or "definitely not in set". Elements can be added to the set, but not removed
+//! (though this can be addressed with the counting Bloom filter variant); the more items added, the larger the probability of
+//! false positives.
+//!
+
 #![allow(dead_code)]
 use std::{collections::hash_map::DefaultHasher, hash::Hash};
 
@@ -32,6 +43,8 @@ pub use seeded_bloom_filter::SeededBloomFilter;
 */
 pub type DefaultBloomFilter = KMBloomFilter<ahash::AHasher, DefaultHasher>;
 
+/// This trait defines the basic functionality supported by the bloom filters in this library.
+///
 pub trait BloomFilter {
     fn insert<T: Hash>(&mut self, data: &T);
     fn check<T: Hash>(&self, data: &T) -> bool;
