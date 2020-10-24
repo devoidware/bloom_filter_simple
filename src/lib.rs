@@ -8,29 +8,32 @@ use std::{
 mod bitset;
 use bitset::Bitset;
 
-pub struct BloomFilter<H>
+pub struct BloomFilter<H1, H2>
 where
-    H: Hasher + Default,
+    H1: Hasher + Default,
+    H2: Hasher + Default,
 {
     hash_count: usize,
     hits: Bitset,
     bits_per_hash: usize,
     element_count: usize,
-    _phantom: PhantomData<H>,
+    _phantom: PhantomData<(H1, H2)>,
 }
 
-impl<H> Debug for BloomFilter<H>
+impl<H1, H2> Debug for BloomFilter<H1, H2>
 where
-    H: Hasher + Default,
+    H1: Hasher + Default,
+    H2: Hasher + Default,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "BloomFilter{{{:?}}}", self.hits)
     }
 }
 
-impl<H> BloomFilter<H>
+impl<H1, H2> BloomFilter<H1, H2>
 where
-    H: Hasher + Default,
+    H1: Hasher + Default,
+    H2: Hasher + Default,
 {
     pub fn new(desired_capacity: usize, false_positive_probability: f64) -> Self {
         // using formulas to calculate optimum size and hash function count
@@ -96,11 +99,11 @@ where
     where
         T: Hash,
     {
-        let mut hasher = H::default();
+        let mut hasher = H1::default();
         data.hash(&mut hasher);
         let hash_a = hasher.finish();
 
-        let mut hasher = H::default();
+        let mut hasher = H2::default();
         hash_a.hash(&mut hasher);
         let hash_b = hasher.finish();
 
