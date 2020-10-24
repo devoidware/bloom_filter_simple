@@ -109,6 +109,6 @@ where
 
     fn index(i: usize, bits_per_hash: usize, hash_a: u64, hash_b: u64) -> usize {
         i * bits_per_hash
-            + (hash_a.wrapping_add(i as u64)).wrapping_mul(hash_b) as usize % bits_per_hash
+            + hash_a.wrapping_add((i as u64).wrapping_mul(hash_b)) as usize % bits_per_hash
     }
 }
