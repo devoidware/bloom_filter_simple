@@ -1,10 +1,10 @@
 use std::{collections::hash_map::DefaultHasher, hash::Hasher};
 
-use bloom_filter::BloomFilter;
+use bloom_filter::{BloomFilter, DefaultBloomFilter};
 
 #[test]
 fn bloomer() {
-    let mut bloomer: BloomFilter<DefaultHasher, fnv::FnvHasher> = BloomFilter::new(3, 0.7);
+    let mut bloomer = DefaultBloomFilter::new(3, 0.7);
 
     println!("Bloomer before insert: {:?}", bloomer);
     println!("Probability: {}", bloomer.false_positive_probability());
