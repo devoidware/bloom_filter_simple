@@ -11,3 +11,4 @@ edition = "2018"
 [dev-dependencies]
 fnv = "1.0.7"
 ahash = "0.5.6"
+xxhash-rust = {version = "0.8.0-beta.3", features = ["xxh3"]}

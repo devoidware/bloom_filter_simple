@@ -1,6 +1,7 @@
 use std::{collections::hash_map::DefaultHasher, hash::Hasher};
 
 use bloom_filter::{BloomFilter, DefaultBloomFilter};
+use xxhash_rust::xxh3;
 
 #[test]
 fn bloomer() {
@@ -61,6 +62,22 @@ fn false_positive_probability_ahash() {
     let false_positive_probability = 0.001;
     let relative_error_margin = 0.001;
     let bloomer: BloomFilter<DefaultHasher, ahash::AHasher> =
+        BloomFilter::new(desired_capacity, false_positive_probability);
+
+    test_bloom_filter_probability(
+        desired_capacity,
+        false_positive_probability,
+        bloomer,
+        relative_error_margin,
+    );
+}
+
+#[test]
+fn false_positive_probability_xx_a_hash() {
+    let desired_capacity = 1_000_000;
+    let false_positive_probability = 0.001;
+    let relative_error_margin = 0.001;
+    let bloomer: BloomFilter<xxh3::Xxh3, DefaultHasher> =
         BloomFilter::new(desired_capacity, false_positive_probability);
 
     test_bloom_filter_probability(
