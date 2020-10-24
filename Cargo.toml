@@ -7,9 +7,11 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+murmur3 = "0.5.1"
+ahash = "0.5.6"
 
 [dev-dependencies]
 fnv = "1.0.7"
-ahash = "0.5.6"
 xxhash-rust = {version = "0.8.0-beta.3", features = ["xxh3"]}
+bloomfilter = "1.0.3"
 rand = "0.7.3"
