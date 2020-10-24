@@ -88,6 +88,10 @@ where
             .powf(self.hash_count as f64)
     }
 
+    pub fn hash_count(&self) -> usize {
+        self.hash_count
+    }
+
     fn generate_hashes<T>(&self, data: &T) -> (u64, u64)
     where
         T: Hash,
