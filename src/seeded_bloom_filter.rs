@@ -1,4 +1,4 @@
-use crate::bitset::Bitset;
+use crate::{bitset::Bitset, BloomFilter};
 use ahash::AHasher;
 use std::fmt::Debug;
 use std::hash::{Hash, Hasher};
@@ -8,12 +8,6 @@ pub struct SeededBloomFilter {
     hits: Bitset,
     bits_per_hash: usize,
     element_count: usize,
-}
-
-impl Debug for SeededBloomFilter {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "SeededBloomFilter{{{:?}}}", self.hits)
-    }
 }
 
 impl SeededBloomFilter {
@@ -35,31 +29,6 @@ impl SeededBloomFilter {
         }
     }
 
-    pub fn insert<T>(&mut self, data: &T)
-    where
-        T: Hash,
-    {
-        for i in 0..self.hash_count {
-            self.hits
-                .set(Self::index(i, self.bits_per_hash, &data), true);
-        }
-
-        self.element_count += 1;
-    }
-
-    pub fn check<T>(&self, data: &T) -> bool
-    where
-        T: Hash,
-    {
-        for i in 0..self.hash_count {
-            if !self.hits.get(Self::index(i, self.bits_per_hash, &data)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     pub fn false_positive_probability(&self) -> f64 {
         (1.0 - std::f64::consts::E.powf(-(self.element_count as f64) / self.bits_per_hash as f64))
             .powf(self.hash_count as f64)
@@ -76,5 +45,38 @@ impl SeededBloomFilter {
         let mut hasher = AHasher::new_with_keys(i as u128, i as u128);
         data.hash(&mut hasher);
         i * bits_per_hash + hasher.finish() as usize % bits_per_hash
+    }
+}
+
+impl Debug for SeededBloomFilter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "SeededBloomFilter{{{:?}}}", self.hits)
+    }
+}
+
+impl BloomFilter for SeededBloomFilter {
+    fn insert<T>(&mut self, data: &T)
+    where
+        T: Hash,
+    {
+        for i in 0..self.hash_count {
+            self.hits
+                .set(Self::index(i, self.bits_per_hash, &data), true);
+        }
+
+        self.element_count += 1;
+    }
+
+    fn check<T>(&self, data: &T) -> bool
+    where
+        T: Hash,
+    {
+        for i in 0..self.hash_count {
+            if !self.hits.get(Self::index(i, self.bits_per_hash, &data)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

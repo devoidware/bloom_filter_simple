@@ -4,7 +4,7 @@ use std::{
     marker::PhantomData,
 };
 
-use crate::bitset::Bitset;
+use crate::{bitset::Bitset, BloomFilter};
 
 /// Bloom filter implementation using the improvements described in
 /// Kirsch A., Mitzenmacher M. (2006) Less Hashing, Same Performance: Building a Better Bloom Filter.
@@ -20,16 +20,6 @@ where
     bits_per_hash: usize,
     element_count: usize,
     _phantom: PhantomData<(H1, H2)>,
-}
-
-impl<H1, H2> Debug for KMBloomFilter<H1, H2>
-where
-    H1: Hasher + Default,
-    H2: Hasher + Default,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "KMBloomFilter{{{:?}}}", self.hits)
-    }
 }
 
 impl<H1, H2> KMBloomFilter<H1, H2>
@@ -54,38 +44,6 @@ where
             element_count: 0,
             _phantom: PhantomData,
         }
-    }
-
-    pub fn insert<T>(&mut self, data: &T)
-    where
-        T: Hash,
-    {
-        let (hash_a, hash_b) = self.generate_hashes(&data);
-
-        for i in 0..self.hash_count {
-            self.hits
-                .set(Self::index(i, self.bits_per_hash, hash_a, hash_b), true);
-        }
-
-        self.element_count += 1;
-    }
-
-    pub fn check<T>(&self, data: &T) -> bool
-    where
-        T: Hash,
-    {
-        let (hash_a, hash_b) = self.generate_hashes(data);
-
-        for i in 0..self.hash_count {
-            if !self
-                .hits
-                .get(Self::index(i, self.bits_per_hash, hash_a, hash_b))
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     pub fn false_positive_probability(&self) -> f64 {
@@ -115,5 +73,53 @@ where
     fn index(i: usize, bits_per_hash: usize, hash_a: u64, hash_b: u64) -> usize {
         i * bits_per_hash
             + hash_a.wrapping_add((i as u64).wrapping_mul(hash_b)) as usize % bits_per_hash
+    }
+}
+
+impl<H1, H2> Debug for KMBloomFilter<H1, H2>
+where
+    H1: Hasher + Default,
+    H2: Hasher + Default,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "KMBloomFilter{{{:?}}}", self.hits)
+    }
+}
+
+impl<H1, H2> BloomFilter for KMBloomFilter<H1, H2>
+where
+    H1: Hasher + Default,
+    H2: Hasher + Default,
+{
+    fn insert<T>(&mut self, data: &T)
+    where
+        T: Hash,
+    {
+        let (hash_a, hash_b) = self.generate_hashes(&data);
+
+        for i in 0..self.hash_count {
+            self.hits
+                .set(Self::index(i, self.bits_per_hash, hash_a, hash_b), true);
+        }
+
+        self.element_count += 1;
+    }
+
+    fn check<T>(&self, data: &T) -> bool
+    where
+        T: Hash,
+    {
+        let (hash_a, hash_b) = self.generate_hashes(data);
+
+        for i in 0..self.hash_count {
+            if !self
+                .hits
+                .get(Self::index(i, self.bits_per_hash, hash_a, hash_b))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
