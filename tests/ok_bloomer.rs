@@ -48,7 +48,7 @@ fn false_positive_probability_extern() {
 fn false_positive_probability_seeded() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
-    let relative_error_margin = 0.001;
+    let relative_error_margin = 0.06;
     let bloomer = SeededBloomFilter::new(desired_capacity, false_positive_probability);
 
     test_seeded_bloom_filter_probability(
