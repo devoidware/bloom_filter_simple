@@ -15,7 +15,7 @@ where
     hasher: Cell<H>,
     hash_count: usize,
     hits: Bitset,
-    capacity: usize,
+    bits_per_hash: usize,
     element_count: usize,
 }
 
@@ -32,19 +32,21 @@ impl<H> BloomFilter<H>
 where
     H: Hasher + Default,
 {
-    pub fn new(capacity: usize, false_positive_probability: f64) -> Self {
+    pub fn new(desired_capacity: usize, false_positive_probability: f64) -> Self {
         // using formulas to calculate optimum size and hash function count
-        // m = ceil((n * ln(p)) / ln(1 / pow(2, ln(2))));
-        // k = round((m / n) * ln(2));
-        let bit_count =
-            ((capacity as f64 * false_positive_probability.ln()) / -0.48045301391).ceil(); // ln (1/(2^ln(2))) is approx. -0.48045301391
-        let hash_count = ((bit_count as f64 / capacity as f64) * 0.693147).round() as usize; // ln(2) is approx. 0.693147
+        // m = ceil((n * ln(p)) / ln(1 / pow(2, ln(2)))); ln (1/(2^ln(2))) is approx. -0.48045301391
+        // k = round((m / n) * ln(2)); ln(2) is approx. 0.693147
+        let bit_count = ((desired_capacity as f64 * false_positive_probability.ln())
+            / (1.0 / 2.0f64.powf(2.0f64.ln())).ln())
+        .ceil();
+        let hash_count =
+            ((bit_count as f64 / desired_capacity as f64) * 2.0f64.ln()).round() as usize;
         let bits_per_hash = (bit_count / hash_count as f64).ceil() as usize;
         Self {
             hits: Bitset::new(bits_per_hash * hash_count),
             hasher: Cell::new(H::default()),
             hash_count,
-            capacity: bits_per_hash,
+            bits_per_hash,
             element_count: 0,
         }
     }
@@ -57,7 +59,7 @@ where
 
         for i in 0..self.hash_count {
             self.hits
-                .set(Self::index(i, self.capacity, hash_a, hash_b), true);
+                .set(Self::index(i, self.bits_per_hash, hash_a, hash_b), true);
         }
 
         self.element_count += 1;
@@ -70,7 +72,10 @@ where
         let (hash_a, hash_b) = self.generate_hashes(data);
 
         for i in 0..self.hash_count {
-            if !self.hits.get(Self::index(i, self.capacity, hash_a, hash_b)) {
+            if !self
+                .hits
+                .get(Self::index(i, self.bits_per_hash, hash_a, hash_b))
+            {
                 return false;
             }
         }
@@ -79,7 +84,7 @@ where
     }
 
     pub fn false_positive_probability(&self) -> f64 {
-        (1.0 - std::f64::consts::E.powf(-(self.element_count as f64) / self.capacity as f64))
+        (1.0 - std::f64::consts::E.powf(-(self.element_count as f64) / self.bits_per_hash as f64))
             .powf(self.hash_count as f64)
     }
 
@@ -98,7 +103,8 @@ where
         (hash_a, hash_b)
     }
 
-    fn index(i: usize, capacity: usize, hash_a: u64, hash_b: u64) -> usize {
-        i * capacity + (hash_a.wrapping_add(i as u64)).wrapping_mul(hash_b) as usize % capacity
+    fn index(i: usize, bits_per_hash: usize, hash_a: u64, hash_b: u64) -> usize {
+        i * bits_per_hash
+            + (hash_a.wrapping_add(i as u64)).wrapping_mul(hash_b) as usize % bits_per_hash
     }
 }
