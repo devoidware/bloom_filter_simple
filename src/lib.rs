@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 use std::{
-    cell::Cell,
     fmt::Debug,
     hash::{Hash, Hasher},
+    marker::PhantomData,
 };
 
 mod bitset;
@@ -12,11 +12,11 @@ pub struct BloomFilter<H>
 where
     H: Hasher + Default,
 {
-    hasher: Cell<H>,
     hash_count: usize,
     hits: Bitset,
     bits_per_hash: usize,
     element_count: usize,
+    _phantom: PhantomData<H>,
 }
 
 impl<H> Debug for BloomFilter<H>
@@ -44,10 +44,10 @@ where
         let bits_per_hash = (bit_count / hash_count as f64).ceil() as usize;
         Self {
             hits: Bitset::new(bits_per_hash * hash_count),
-            hasher: Cell::new(H::default()),
             hash_count,
             bits_per_hash,
             element_count: 0,
+            _phantom: PhantomData,
         }
     }
 
@@ -92,11 +92,11 @@ where
     where
         T: Hash,
     {
-        let mut hasher = self.hasher.take();
+        let mut hasher = H::default();
         data.hash(&mut hasher);
         let hash_a = hasher.finish();
 
-        let mut hasher = self.hasher.take();
+        let mut hasher = H::default();
         hash_a.hash(&mut hasher);
         let hash_b = hasher.finish();
 
