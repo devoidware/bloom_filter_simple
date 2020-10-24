@@ -107,7 +107,7 @@ where
         let hash_a = hasher.finish();
 
         let mut hasher = H2::default();
-        hash_a.hash(&mut hasher);
+        data.hash(&mut hasher);
         let hash_b = hasher.finish();
 
         (hash_a, hash_b)
