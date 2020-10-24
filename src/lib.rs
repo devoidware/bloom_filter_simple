@@ -4,7 +4,10 @@ use std::{
     fmt::Debug,
     hash::{Hash, Hasher},
 };
+
 mod bitset;
+
+use bitset::Bitset;
 
 // capacity
 // probability false positive
@@ -25,14 +28,14 @@ where
 
 impl Debug for BloomFilter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Bloomer: {:?}", self.hits)
+        write!(f, "BloomFilter{{{:?}}}", self.hits)
     }
 }
 
 pub struct BloomFilter {
     hasher: Box<dyn ResettableHasher>,
     hash_count: usize,
-    hits: Vec<bool>,
+    hits: Bitset,
     capacity: usize,
     element_count: usize,
 }
@@ -40,7 +43,7 @@ pub struct BloomFilter {
 impl BloomFilter {
     pub fn new(capacity: usize, hash_count: usize) -> Self {
         Self {
-            hits: vec![false; capacity * hash_count],
+            hits: Bitset::new(capacity * hash_count),
             hasher: Box::new(DefaultHasher::default()),
             hash_count,
             capacity,
@@ -57,7 +60,8 @@ impl BloomFilter {
         let (hash_a, hash_b) = self.generate_hashes(&data);
 
         for i in 0..self.hash_count {
-            self.hits[Self::index(i, self.capacity, hash_a, hash_b)] = true;
+            self.hits
+                .set(Self::index(i, self.capacity, hash_a, hash_b), true);
         }
 
         self.element_count += 1;
@@ -70,7 +74,7 @@ impl BloomFilter {
         let (hash_a, hash_b) = self.generate_hashes(data);
 
         for i in 0..self.hash_count {
-            if !self.hits[Self::index(i, self.capacity, hash_a, hash_b)] {
+            if !self.hits.get(Self::index(i, self.capacity, hash_a, hash_b)) {
                 return false;
             }
         }

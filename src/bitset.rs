@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 pub struct Bitset {
     bytes: Vec<u8>,
     length: usize,
@@ -53,6 +55,13 @@ impl Bitset {
         let byte_index = index / 8;
         let mask = 0x01 << index % 8;
         self.bytes[byte_index] & mask == mask
+    }
+}
+
+impl Debug for Bitset {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let bits: Vec<bool> = (0..self.length).map(|i| self.get(i)).collect();
+        write!(f, "Bitset{{{:?}}}", bits)
     }
 }
 
