@@ -1,46 +1,22 @@
-#![allow(dead_code)]
-use std::{
-    collections::hash_map::DefaultHasher,
-    fmt::Debug,
-    hash::{Hash, Hasher},
-    marker::PhantomData,
-};
+use crate::bitset::Bitset;
+use ahash::AHasher;
+use std::fmt::Debug;
+use std::hash::{Hash, Hasher};
 
-mod bitset;
-mod seeded_bloom_filter;
-
-use bitset::Bitset;
-pub use seeded_bloom_filter::SeededBloomFilter;
-
-pub type DefaultBloomFilter = BloomFilter<ahash::AHasher, DefaultHasher>;
-
-pub struct BloomFilter<H1, H2>
-where
-    H1: Hasher + Default,
-    H2: Hasher + Default,
-{
+pub struct SeededBloomFilter {
     hash_count: usize,
     hits: Bitset,
     bits_per_hash: usize,
     element_count: usize,
-    _phantom: PhantomData<(H1, H2)>,
 }
 
-impl<H1, H2> Debug for BloomFilter<H1, H2>
-where
-    H1: Hasher + Default,
-    H2: Hasher + Default,
-{
+impl Debug for SeededBloomFilter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "BloomFilter{{{:?}}}", self.hits)
+        write!(f, "SeededBloomFilter{{{:?}}}", self.hits)
     }
 }
 
-impl<H1, H2> BloomFilter<H1, H2>
-where
-    H1: Hasher + Default,
-    H2: Hasher + Default,
-{
+impl SeededBloomFilter {
     pub fn new(desired_capacity: usize, false_positive_probability: f64) -> Self {
         // using formulas to calculate optimum size and hash function count
         // m = ceil((n * ln(p)) / ln(1 / pow(2, ln(2)))); ln (1/(2^ln(2))) is approx. -0.48045301391
@@ -56,7 +32,6 @@ where
             hash_count,
             bits_per_hash,
             element_count: 0,
-            _phantom: PhantomData,
         }
     }
 
@@ -64,11 +39,9 @@ where
     where
         T: Hash,
     {
-        let (hash_a, hash_b) = self.generate_hashes(&data);
-
         for i in 0..self.hash_count {
             self.hits
-                .set(Self::index(i, self.bits_per_hash, hash_a, hash_b), true);
+                .set(Self::index(i, self.bits_per_hash, &data), true);
         }
 
         self.element_count += 1;
@@ -78,13 +51,8 @@ where
     where
         T: Hash,
     {
-        let (hash_a, hash_b) = self.generate_hashes(data);
-
         for i in 0..self.hash_count {
-            if !self
-                .hits
-                .get(Self::index(i, self.bits_per_hash, hash_a, hash_b))
-            {
+            if !self.hits.get(Self::index(i, self.bits_per_hash, &data)) {
                 return false;
             }
         }
@@ -101,23 +69,12 @@ where
         self.hash_count
     }
 
-    fn generate_hashes<T>(&self, data: &T) -> (u64, u64)
+    fn index<T>(i: usize, bits_per_hash: usize, data: &T) -> usize
     where
         T: Hash,
     {
-        let mut hasher = H1::default();
+        let mut hasher = AHasher::new_with_keys(i as u128, i as u128);
         data.hash(&mut hasher);
-        let hash_a = hasher.finish();
-
-        let mut hasher = H2::default();
-        data.hash(&mut hasher);
-        let hash_b = hasher.finish();
-
-        (hash_a, hash_b)
-    }
-
-    fn index(i: usize, bits_per_hash: usize, hash_a: u64, hash_b: u64) -> usize {
-        i * bits_per_hash
-            + hash_a.wrapping_add((i as u64).wrapping_mul(hash_b)) as usize % bits_per_hash
+        i * bits_per_hash + hasher.finish() as usize % bits_per_hash
     }
 }

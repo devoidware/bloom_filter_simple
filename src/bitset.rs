@@ -16,7 +16,7 @@ impl Bitset {
             1 + length / 8
         };
 
-        Bitset {
+        Self {
             length,
             bytes: vec![0; byte_length],
         }

@@ -1,7 +1,6 @@
 use std::{collections::hash_map::DefaultHasher, hash::Hasher};
 
-use bloom_filter::seeded_bloomfilter::SeededBloomFilter;
-use bloom_filter::{BloomFilter, DefaultBloomFilter};
+use bloom_filter::{BloomFilter, DefaultBloomFilter, SeededBloomFilter};
 use bloomfilter::Bloom;
 use rand::{distributions::Uniform, prelude::StdRng, Rng, SeedableRng};
 use xxhash_rust::xxh3;
