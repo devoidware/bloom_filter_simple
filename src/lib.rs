@@ -10,7 +10,7 @@ mod bitset;
 pub mod seeded_bloomfilter;
 use bitset::Bitset;
 
-pub type DefaultBloomFilter = BloomFilter<DefaultHasher, DefaultHasher>;
+pub type DefaultBloomFilter = BloomFilter<ahash::AHasher, DefaultHasher>;
 
 pub struct BloomFilter<H1, H2>
 where
