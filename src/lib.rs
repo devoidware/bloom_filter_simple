@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 use std::{
+    cell::Cell,
     fmt::Debug,
     hash::{Hash, Hasher},
 };
@@ -7,24 +8,11 @@ use std::{
 mod bitset;
 use bitset::Bitset;
 
-pub trait ResettableHasher: Hasher + Default {
-    fn reset(&mut self);
-}
-
-impl<T> ResettableHasher for T
-where
-    T: Default + Hasher,
-{
-    fn reset(&mut self) {
-        *self = Self::default();
-    }
-}
-
 pub struct BloomFilter<H>
 where
-    H: ResettableHasher,
+    H: Hasher + Default,
 {
-    hasher: Box<H>,
+    hasher: Cell<H>,
     hash_count: usize,
     hits: Bitset,
     capacity: usize,
@@ -33,7 +21,7 @@ where
 
 impl<H> Debug for BloomFilter<H>
 where
-    H: ResettableHasher,
+    H: Hasher + Default,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "BloomFilter{{{:?}}}", self.hits)
@@ -42,7 +30,7 @@ where
 
 impl<H> BloomFilter<H>
 where
-    H: ResettableHasher,
+    H: Hasher + Default,
 {
     pub fn new(capacity: usize, false_positive_probability: f64) -> Self {
         // using formulas to calculate optimum size and hash function count
@@ -54,7 +42,7 @@ where
         let bits_per_hash = (bit_count / hash_count as f64).ceil() as usize;
         Self {
             hits: Bitset::new(bits_per_hash * hash_count),
-            hasher: Box::new(H::default()),
+            hasher: Cell::new(H::default()),
             hash_count,
             capacity: bits_per_hash,
             element_count: 0,
@@ -75,7 +63,7 @@ where
         self.element_count += 1;
     }
 
-    pub fn check<T>(&mut self, data: &T) -> bool
+    pub fn check<T>(&self, data: &T) -> bool
     where
         T: Hash,
     {
@@ -95,17 +83,17 @@ where
             .powf(self.hash_count as f64)
     }
 
-    fn generate_hashes<T>(&mut self, data: &T) -> (u64, u64)
+    fn generate_hashes<T>(&self, data: &T) -> (u64, u64)
     where
         T: Hash,
     {
-        data.hash(&mut self.hasher);
-        let hash_a = self.hasher.finish();
-        self.hasher.reset();
+        let mut hasher = self.hasher.take();
+        data.hash(&mut hasher);
+        let hash_a = hasher.finish();
 
-        hash_a.hash(&mut self.hasher);
-        let hash_b = self.hasher.finish();
-        self.hasher.reset();
+        let mut hasher = self.hasher.take();
+        hash_a.hash(&mut hasher);
+        let hash_b = hasher.finish();
 
         (hash_a, hash_b)
     }
