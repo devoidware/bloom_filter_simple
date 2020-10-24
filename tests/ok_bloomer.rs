@@ -1,6 +1,6 @@
 use std::{collections::hash_map::DefaultHasher, hash::Hasher};
 
-use bloom_filter::{BloomFilter, DefaultBloomFilter, SeededBloomFilter};
+use bloom_filter::{DefaultBloomFilter, KMBloomFilter, SeededBloomFilter};
 use bloomfilter::Bloom;
 use rand::{distributions::Uniform, prelude::StdRng, Rng, SeedableRng};
 use xxhash_rust::xxh3;
@@ -62,8 +62,8 @@ fn false_positive_probability_test_default_fnv() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
     let relative_error_margin = 0.034;
-    let bloomer: BloomFilter<DefaultHasher, fnv::FnvHasher> =
-        BloomFilter::new(desired_capacity, false_positive_probability);
+    let bloomer: KMBloomFilter<DefaultHasher, fnv::FnvHasher> =
+        KMBloomFilter::new(desired_capacity, false_positive_probability);
 
     test_bloom_filter_probability(
         desired_capacity,
@@ -78,8 +78,8 @@ fn false_positive_probability_default_ahash() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
     let relative_error_margin = 0.028;
-    let bloomer: BloomFilter<DefaultHasher, ahash::AHasher> =
-        BloomFilter::new(desired_capacity, false_positive_probability);
+    let bloomer: KMBloomFilter<DefaultHasher, ahash::AHasher> =
+        KMBloomFilter::new(desired_capacity, false_positive_probability);
 
     test_bloom_filter_probability(
         desired_capacity,
@@ -94,8 +94,8 @@ fn false_positive_probability_xx_default() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
     let relative_error_margin = 0.005;
-    let bloomer: BloomFilter<xxh3::Xxh3, DefaultHasher> =
-        BloomFilter::new(desired_capacity, false_positive_probability);
+    let bloomer: KMBloomFilter<xxh3::Xxh3, DefaultHasher> =
+        KMBloomFilter::new(desired_capacity, false_positive_probability);
 
     test_bloom_filter_probability(
         desired_capacity,
@@ -110,8 +110,8 @@ fn false_positive_probability_test_random_default_fnv() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
     let relative_error_margin = 0.04;
-    let bloomer: BloomFilter<DefaultHasher, fnv::FnvHasher> =
-        BloomFilter::new(desired_capacity, false_positive_probability);
+    let bloomer: KMBloomFilter<DefaultHasher, fnv::FnvHasher> =
+        KMBloomFilter::new(desired_capacity, false_positive_probability);
 
     test_bloom_filter_probability_random(
         desired_capacity,
@@ -126,8 +126,8 @@ fn false_positive_probability_random_default_ahash() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
     let relative_error_margin = 0.034;
-    let bloomer: BloomFilter<DefaultHasher, ahash::AHasher> =
-        BloomFilter::new(desired_capacity, false_positive_probability);
+    let bloomer: KMBloomFilter<DefaultHasher, ahash::AHasher> =
+        KMBloomFilter::new(desired_capacity, false_positive_probability);
 
     test_bloom_filter_probability_random(
         desired_capacity,
@@ -142,8 +142,8 @@ fn false_positive_probability_random_ahash_default() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
     let relative_error_margin = 0.00002;
-    let bloomer: BloomFilter<ahash::AHasher, DefaultHasher> =
-        BloomFilter::new(desired_capacity, false_positive_probability);
+    let bloomer: KMBloomFilter<ahash::AHasher, DefaultHasher> =
+        KMBloomFilter::new(desired_capacity, false_positive_probability);
 
     test_bloom_filter_probability_random(
         desired_capacity,
@@ -156,7 +156,7 @@ fn false_positive_probability_random_ahash_default() {
 fn test_bloom_filter_probability<H1, H2>(
     desired_capacity: usize,
     false_positive_probability: f64,
-    mut bloomer: BloomFilter<H1, H2>,
+    mut bloomer: KMBloomFilter<H1, H2>,
     relative_error_margin: f64,
 ) where
     H1: Hasher + Default,
@@ -196,7 +196,7 @@ fn test_bloom_filter_probability<H1, H2>(
 fn test_bloom_filter_probability_random<H1, H2>(
     desired_capacity: usize,
     false_positive_probability: f64,
-    mut bloomer: BloomFilter<H1, H2>,
+    mut bloomer: KMBloomFilter<H1, H2>,
     relative_error_margin: f64,
 ) where
     H1: Hasher + Default,
