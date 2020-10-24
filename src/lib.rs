@@ -7,6 +7,7 @@ use std::{
 };
 
 mod bitset;
+pub mod seeded_bloomfilter;
 use bitset::Bitset;
 
 pub type DefaultBloomFilter = BloomFilter<DefaultHasher, DefaultHasher>;

@@ -1,6 +1,8 @@
 use std::{collections::hash_map::DefaultHasher, hash::Hasher};
 
+use bloom_filter::seeded_bloomfilter::SeededBloomFilter;
 use bloom_filter::{BloomFilter, DefaultBloomFilter};
+use bloomfilter::Bloom;
 use rand::{distributions::Uniform, prelude::StdRng, Rng, SeedableRng};
 use xxhash_rust::xxh3;
 
@@ -25,6 +27,37 @@ fn bloomer() {
     assert!(bloomer.check(&5));
 }
 
+#[test]
+#[ignore]
+fn false_positive_probability_extern() {
+    let desired_capacity = 10_000_000;
+    let false_positive_probability = 0.001;
+    let relative_error_margin = 0.001;
+    let bloomer: Bloom<usize> =
+        Bloom::new_for_fp_rate(desired_capacity, false_positive_probability);
+
+    test_extern_bloomfilter(
+        desired_capacity,
+        false_positive_probability,
+        bloomer,
+        relative_error_margin,
+    );
+}
+
+#[test]
+fn false_positive_probability_seeded() {
+    let desired_capacity = 1_000_000;
+    let false_positive_probability = 0.001;
+    let relative_error_margin = 0.001;
+    let bloomer = SeededBloomFilter::new(desired_capacity, false_positive_probability);
+
+    test_seeded_bloom_filter_probability(
+        desired_capacity,
+        false_positive_probability,
+        bloomer,
+        relative_error_margin,
+    );
+}
 #[test]
 fn false_positive_probability_test_default_fnv() {
     let desired_capacity = 1_000_000;
@@ -181,6 +214,73 @@ fn test_bloom_filter_probability_random<H1, H2>(
     let mut rng = rand::rngs::StdRng::from_seed([0; 32]);
     let true_checks = (0..(desired_capacity * 2))
         .map(|_| bloomer.check(&rng.sample(distribution)))
+        .filter(|c| *c)
+        .count();
+
+    println!("Desired capacity: {}", desired_capacity);
+    println!(
+        "Desired false positive probability: {}",
+        false_positive_probability
+    );
+    println!("Calculated hash count: {}", bloomer.hash_count());
+    println!("Positive check count: {}", true_checks);
+    println!(
+        "Calculated false positive probability: {} ({})",
+        bloomer.false_positive_probability(),
+        allowed_probability,
+    );
+    println!(
+        "Tested false positive probability: {} ({})",
+        (true_checks as f64 - desired_capacity as f64) / desired_capacity as f64,
+        allowed_probability
+    );
+    assert!(true_checks < (desired_capacity as f64 * (1.0 + allowed_probability)) as usize);
+}
+
+fn test_extern_bloomfilter(
+    desired_capacity: usize,
+    false_positive_probability: f64,
+    mut bloomer: Bloom<usize>,
+    relative_error_margin: f64,
+) {
+    let allowed_probability = false_positive_probability * (1.0 + relative_error_margin);
+    for i in 0..desired_capacity {
+        bloomer.set(&i);
+    }
+
+    let true_checks = (0..(desired_capacity * 2))
+        .map(|i| bloomer.check(&i))
+        .filter(|c| *c)
+        .count();
+
+    println!("Desired capacity: {}", desired_capacity);
+    println!(
+        "Desired false positive probability: {}",
+        false_positive_probability
+    );
+    println!("Positive check count: {}", true_checks);
+    println!(
+        "Tested false positive probability: {} ({})",
+        (true_checks as f64 - desired_capacity as f64) / desired_capacity as f64,
+        allowed_probability
+    );
+    assert!(true_checks < (desired_capacity as f64 * (1.0 + allowed_probability)) as usize);
+}
+
+fn test_seeded_bloom_filter_probability(
+    desired_capacity: usize,
+    false_positive_probability: f64,
+    mut bloomer: SeededBloomFilter,
+    relative_error_margin: f64,
+) {
+    let allowed_probability = false_positive_probability * (1.0 + relative_error_margin);
+    for i in 0..desired_capacity {
+        bloomer.insert(i);
+        assert!(bloomer.false_positive_probability() < allowed_probability);
+    }
+
+    let true_checks = (0..(desired_capacity * 2))
+        .map(|i| bloomer.check(&i))
         .filter(|c| *c)
         .count();
 
