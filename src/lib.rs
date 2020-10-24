@@ -1,19 +1,13 @@
 #![allow(dead_code)]
 use std::{
-    collections::hash_map::DefaultHasher,
     fmt::Debug,
     hash::{Hash, Hasher},
 };
 
 mod bitset;
-
 use bitset::Bitset;
 
-// capacity
-// probability false positive
-// number of hash functions
-
-pub trait ResettableHasher: Hasher {
+pub trait ResettableHasher: Hasher + Default {
     fn reset(&mut self);
 }
 
@@ -26,33 +20,40 @@ where
     }
 }
 
-impl Debug for BloomFilter {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "BloomFilter{{{:?}}}", self.hits)
-    }
-}
-
-pub struct BloomFilter {
-    hasher: Box<dyn ResettableHasher>,
+pub struct BloomFilter<H>
+where
+    H: ResettableHasher,
+{
+    hasher: Box<H>,
     hash_count: usize,
     hits: Bitset,
     capacity: usize,
     element_count: usize,
 }
 
-impl BloomFilter {
+impl<H> Debug for BloomFilter<H>
+where
+    H: ResettableHasher,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "BloomFilter{{{:?}}}", self.hits)
+    }
+}
+
+impl<H> BloomFilter<H>
+where
+    H: ResettableHasher,
+{
     pub fn new(capacity: usize, hash_count: usize) -> Self {
         Self {
             hits: Bitset::new(capacity * hash_count),
-            hasher: Box::new(DefaultHasher::default()),
+            hasher: Box::new(H::default()),
             hash_count,
             capacity,
             element_count: 0,
         }
     }
-}
 
-impl BloomFilter {
     pub fn insert<T>(&mut self, data: T)
     where
         T: Hash,
@@ -105,11 +106,5 @@ impl BloomFilter {
 
     fn index(i: usize, capacity: usize, hash_a: u64, hash_b: u64) -> usize {
         i * capacity + (hash_a.wrapping_add(i as u64)).wrapping_mul(hash_b) as usize % capacity
-    }
-}
-
-impl Default for BloomFilter {
-    fn default() -> Self {
-        todo!()
     }
 }
