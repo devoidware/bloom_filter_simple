@@ -35,7 +35,7 @@ impl SeededBloomFilter {
         }
     }
 
-    pub fn insert<T>(&mut self, data: T)
+    pub fn insert<T>(&mut self, data: &T)
     where
         T: Hash,
     {
