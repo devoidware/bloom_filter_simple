@@ -4,7 +4,7 @@ use bloom_filter::BloomFilter;
 
 #[test]
 fn bloomer() {
-    let mut bloomer: BloomFilter<DefaultHasher> = BloomFilter::new(3, 3);
+    let mut bloomer: BloomFilter<DefaultHasher> = BloomFilter::new(3, 0.7);
 
     println!("Bloomer before insert: {:?}", bloomer);
     println!("Probability: {}", bloomer.false_positive_probability());

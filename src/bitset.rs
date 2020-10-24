@@ -61,7 +61,7 @@ impl Bitset {
 impl Debug for Bitset {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let bits: Vec<bool> = (0..self.length).map(|i| self.get(i)).collect();
-        write!(f, "Bitset{{{:?}}}", bits)
+        write!(f, "Bitset{{length: {}, data: {:?}}}", self.len(), bits)
     }
 }
 

@@ -44,12 +44,19 @@ impl<H> BloomFilter<H>
 where
     H: ResettableHasher,
 {
-    pub fn new(capacity: usize, hash_count: usize) -> Self {
+    pub fn new(capacity: usize, false_positive_probability: f64) -> Self {
+        // using formulas to calculate optimum size and hash function count
+        // m = ceil((n * ln(p)) / ln(1 / pow(2, ln(2))));
+        // k = round((m / n) * ln(2));
+        let bit_count =
+            ((capacity as f64 * false_positive_probability.ln()) / -0.48045301391).ceil(); // ln (1/(2^ln(2))) is approx. -0.48045301391
+        let hash_count = ((bit_count as f64 / capacity as f64) * 0.693147).round() as usize; // ln(2) is approx. 0.693147
+        let bits_per_hash = (bit_count / hash_count as f64).ceil() as usize;
         Self {
-            hits: Bitset::new(capacity * hash_count),
+            hits: Bitset::new(bits_per_hash * hash_count),
             hasher: Box::new(H::default()),
             hash_count,
-            capacity,
+            capacity: bits_per_hash,
             element_count: 0,
         }
     }
@@ -84,9 +91,8 @@ where
     }
 
     pub fn false_positive_probability(&self) -> f64 {
-        (1.0 - std::f64::consts::E
-            .powf(-(self.hash_count as f64) * self.element_count as f64 / self.capacity as f64))
-        .powf(self.capacity as f64)
+        (1.0 - std::f64::consts::E.powf(-(self.element_count as f64) / self.capacity as f64))
+            .powf(self.hash_count as f64)
     }
 
     fn generate_hashes<T>(&mut self, data: &T) -> (u64, u64)
