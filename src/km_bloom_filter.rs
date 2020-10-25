@@ -27,11 +27,11 @@ where
     H1: Hasher + Default,
     H2: Hasher + Default,
 {
-    pub fn new(desired_capacity: usize, false_positive_probability: f64) -> Self {
+    pub fn new(desired_capacity: usize, desired_false_positive_probability: f64) -> Self {
         // using formulas to calculate optimum size and hash function count
         // m = ceil((n * ln(p)) / ln(1 / pow(2, ln(2)))); ln (1/(2^ln(2))) is approx. -0.48045301391
         // k = round((m / n) * ln(2)); ln(2) is approx. 0.693147
-        let bit_count = ((desired_capacity as f64 * false_positive_probability.ln())
+        let bit_count = ((desired_capacity as f64 * desired_false_positive_probability.ln())
             / (1.0 / 2.0f64.powf(2.0f64.ln())).ln())
         .ceil();
         let hash_count =
