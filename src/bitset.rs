@@ -1,4 +1,4 @@
-use std::{fmt::Debug, ops::Add};
+use std::fmt::Debug;
 
 pub struct Bitset {
     bytes: Vec<u8>,
@@ -56,6 +56,50 @@ impl Bitset {
         let mask = 0x01 << index % 8;
         self.bytes[byte_index] & mask == mask
     }
+
+    pub fn count_ones(&self) -> usize {
+        self.bytes.iter().map(|b| b.count_ones() as usize).sum()
+    }
+
+    pub fn count_zeros(&self) -> usize {
+        self.bytes.iter().map(|b| b.count_zeros() as usize).sum()
+    }
+
+    pub fn union(&self, other: &Self) -> Self {
+        if self.length != other.length {
+            panic!(
+                "unable to union bitsets with different lengths: {} and {}",
+                self.length, other.length
+            );
+        }
+        Self {
+            bytes: self
+                .bytes
+                .iter()
+                .zip(other.bytes.iter())
+                .map(|(a, b)| a | b)
+                .collect(),
+            length: self.length,
+        }
+    }
+
+    pub fn intersect(&self, other: &Self) -> Self {
+        if self.length != other.length {
+            panic!(
+                "unable to intersect bitsets with different lengths: {} and {}",
+                self.length, other.length
+            );
+        }
+        Self {
+            bytes: self
+                .bytes
+                .iter()
+                .zip(other.bytes.iter())
+                .map(|(a, b)| a & b)
+                .collect(),
+            length: self.length,
+        }
+    }
 }
 
 impl Debug for Bitset {
@@ -65,41 +109,10 @@ impl Debug for Bitset {
     }
 }
 
-impl Add for Bitset {
-    type Output = Self;
-
-    fn add(self, other: Self) -> Self::Output {
-        if self.length != other.length {
-            panic!(
-                "unable to add bitsets with different lengths: {} and {}",
-                self.length, other.length
-            );
-        }
-        Self {
-            bytes: self
-                .bytes
-                .into_iter()
-                .zip(other.bytes.into_iter())
-                .map(|(a, b)| a | b)
-                .collect(),
-            length: self.length,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn get_number_of_set_bits(bitset: &Bitset) -> usize {
-        let mut i = 0;
-        for j in 0..bitset.len() {
-            if bitset.get(j) {
-                i += 1;
-            }
-        }
-        i
-    }
     #[test]
     fn bitset_with_length() {
         let bitset = Bitset::new(1);
@@ -185,43 +198,43 @@ mod tests {
     #[test]
     fn set_each_bit_one_by_one() {
         let mut bitset = Bitset::new(9);
-        assert_eq!(0, get_number_of_set_bits(&bitset));
+        assert_eq!(0, bitset.count_ones());
 
         bitset.set(0, true);
         assert_eq!(true, bitset.get(0));
-        assert_eq!(1, get_number_of_set_bits(&bitset));
+        assert_eq!(1, bitset.count_ones());
 
         bitset.set(1, true);
         assert_eq!(true, bitset.get(1));
-        assert_eq!(2, get_number_of_set_bits(&bitset));
+        assert_eq!(2, bitset.count_ones());
 
         bitset.set(2, true);
         assert_eq!(true, bitset.get(2));
-        assert_eq!(3, get_number_of_set_bits(&bitset));
+        assert_eq!(3, bitset.count_ones());
 
         bitset.set(3, true);
         assert_eq!(true, bitset.get(3));
-        assert_eq!(4, get_number_of_set_bits(&bitset));
+        assert_eq!(4, bitset.count_ones());
 
         bitset.set(4, true);
         assert_eq!(true, bitset.get(4));
-        assert_eq!(5, get_number_of_set_bits(&bitset));
+        assert_eq!(5, bitset.count_ones());
 
         bitset.set(5, true);
         assert_eq!(true, bitset.get(5));
-        assert_eq!(6, get_number_of_set_bits(&bitset));
+        assert_eq!(6, bitset.count_ones());
 
         bitset.set(6, true);
         assert_eq!(true, bitset.get(6));
-        assert_eq!(7, get_number_of_set_bits(&bitset));
+        assert_eq!(7, bitset.count_ones());
 
         bitset.set(7, true);
         assert_eq!(true, bitset.get(7));
-        assert_eq!(8, get_number_of_set_bits(&bitset));
+        assert_eq!(8, bitset.count_ones());
 
         bitset.set(8, true);
         assert_eq!(true, bitset.get(8));
-        assert_eq!(9, get_number_of_set_bits(&bitset));
+        assert_eq!(9, bitset.count_ones());
     }
 
     #[test]
@@ -230,78 +243,114 @@ mod tests {
         for i in 0..bitset.len() {
             bitset.set(i, true);
         }
-        assert_eq!(9, get_number_of_set_bits(&bitset));
+        assert_eq!(9, bitset.count_ones());
 
         bitset.set(0, false);
         assert_eq!(false, bitset.get(0));
-        assert_eq!(8, get_number_of_set_bits(&bitset));
+        assert_eq!(8, bitset.count_ones());
 
         bitset.set(1, false);
         assert_eq!(false, bitset.get(1));
-        assert_eq!(7, get_number_of_set_bits(&bitset));
+        assert_eq!(7, bitset.count_ones());
 
         bitset.set(2, false);
         assert_eq!(false, bitset.get(2));
-        assert_eq!(6, get_number_of_set_bits(&bitset));
+        assert_eq!(6, bitset.count_ones());
 
         bitset.set(3, false);
         assert_eq!(false, bitset.get(3));
-        assert_eq!(5, get_number_of_set_bits(&bitset));
+        assert_eq!(5, bitset.count_ones());
 
         bitset.set(4, false);
         assert_eq!(false, bitset.get(4));
-        assert_eq!(4, get_number_of_set_bits(&bitset));
+        assert_eq!(4, bitset.count_ones());
 
         bitset.set(5, false);
         assert_eq!(false, bitset.get(5));
-        assert_eq!(3, get_number_of_set_bits(&bitset));
+        assert_eq!(3, bitset.count_ones());
 
         bitset.set(6, false);
         assert_eq!(false, bitset.get(6));
-        assert_eq!(2, get_number_of_set_bits(&bitset));
+        assert_eq!(2, bitset.count_ones());
 
         bitset.set(7, false);
         assert_eq!(false, bitset.get(7));
-        assert_eq!(1, get_number_of_set_bits(&bitset));
+        assert_eq!(1, bitset.count_ones());
 
         bitset.set(8, false);
         assert_eq!(false, bitset.get(8));
-        assert_eq!(0, get_number_of_set_bits(&bitset));
+        assert_eq!(0, bitset.count_ones());
     }
 
     #[test]
-    fn add_two_bitsets() {
+    fn bitset_union_test() {
         let mut bitset_a = Bitset::new(6);
-        assert_eq!(0, get_number_of_set_bits(&bitset_a));
+        assert_eq!(0, bitset_a.count_ones());
 
         bitset_a.set(0, true);
         assert_eq!(true, bitset_a.get(0));
-        assert_eq!(1, get_number_of_set_bits(&bitset_a));
+        assert_eq!(1, bitset_a.count_ones());
 
         bitset_a.set(3, true);
         assert_eq!(true, bitset_a.get(3));
-        assert_eq!(2, get_number_of_set_bits(&bitset_a));
+        assert_eq!(2, bitset_a.count_ones());
 
         let mut bitset_b = Bitset::new(6);
-        assert_eq!(0, get_number_of_set_bits(&bitset_b));
+        assert_eq!(0, bitset_b.count_ones());
 
         bitset_b.set(2, true);
         assert_eq!(true, bitset_b.get(2));
-        assert_eq!(1, get_number_of_set_bits(&bitset_b));
+        assert_eq!(1, bitset_b.count_ones());
 
         bitset_b.set(3, true);
         assert_eq!(true, bitset_b.get(3));
-        assert_eq!(2, get_number_of_set_bits(&bitset_b));
+        assert_eq!(2, bitset_b.count_ones());
 
         bitset_b.set(5, true);
         assert_eq!(true, bitset_b.get(5));
-        assert_eq!(3, get_number_of_set_bits(&bitset_b));
+        assert_eq!(3, bitset_b.count_ones());
 
-        let bitset = bitset_a + bitset_b;
-        assert_eq!(4, get_number_of_set_bits(&bitset));
+        let bitset = bitset_a.union(&bitset_b);
+        assert_eq!(4, bitset.count_ones());
         assert_eq!(true, bitset.get(0));
         assert_eq!(true, bitset.get(2));
         assert_eq!(true, bitset.get(3));
         assert_eq!(true, bitset.get(5));
+    }
+
+    #[test]
+    fn bitset_intersect_test() {
+        let mut bitset_a = Bitset::new(6);
+        assert_eq!(0, bitset_a.count_ones());
+
+        bitset_a.set(0, true);
+        assert_eq!(true, bitset_a.get(0));
+        assert_eq!(1, bitset_a.count_ones());
+
+        bitset_a.set(3, true);
+        assert_eq!(true, bitset_a.get(3));
+        assert_eq!(2, bitset_a.count_ones());
+
+        let mut bitset_b = Bitset::new(6);
+        assert_eq!(0, bitset_b.count_ones());
+
+        bitset_b.set(2, true);
+        assert_eq!(true, bitset_b.get(2));
+        assert_eq!(1, bitset_b.count_ones());
+
+        bitset_b.set(3, true);
+        assert_eq!(true, bitset_b.get(3));
+        assert_eq!(2, bitset_b.count_ones());
+
+        bitset_b.set(5, true);
+        assert_eq!(true, bitset_b.get(5));
+        assert_eq!(3, bitset_b.count_ones());
+
+        let bitset = bitset_a.intersect(&bitset_b);
+        assert_eq!(1, bitset.count_ones());
+        assert_eq!(false, bitset.get(0));
+        assert_eq!(false, bitset.get(2));
+        assert_eq!(true, bitset.get(3));
+        assert_eq!(false, bitset.get(5));
     }
 }

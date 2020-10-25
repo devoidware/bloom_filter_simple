@@ -18,7 +18,6 @@ where
     hash_count: usize,
     hits: Bitset,
     bits_per_hash: usize,
-    element_count: usize,
     _phantom: PhantomData<(H1, H2)>,
 }
 
@@ -41,18 +40,54 @@ where
             hits: Bitset::new(bits_per_hash * hash_count),
             hash_count,
             bits_per_hash,
-            element_count: 0,
             _phantom: PhantomData,
         }
     }
 
+    /// Approximate number of elements stored.
+    pub fn element_count(&self) -> f64 {
+        -(self.bits_per_hash as f64)
+            * (1.0
+                - (self.hits.count_ones() as f64) / ((self.hash_count * self.bits_per_hash) as f64))
+                .ln()
+    }
+
+    /// Current approximate probability of checks returning a false positive.
     pub fn false_positive_probability(&self) -> f64 {
-        (1.0 - std::f64::consts::E.powf(-(self.element_count as f64) / self.bits_per_hash as f64))
+        (1.0 - std::f64::consts::E.powf(-self.element_count() / self.bits_per_hash as f64))
             .powf(self.hash_count as f64)
     }
 
     pub fn hash_count(&self) -> usize {
         self.hash_count
+    }
+
+    pub fn union(&self, other: &Self) -> Self {
+        if self.hash_count != other.hash_count || self.bits_per_hash != other.bits_per_hash {
+            panic!("unable to union k-m bloom filters with different configurations");
+        }
+        Self {
+            hash_count: self.hash_count,
+            hits: self.hits.union(&other.hits),
+            bits_per_hash: self.bits_per_hash,
+            _phantom: self._phantom,
+        }
+    }
+
+    pub fn intersect(&self, other: &Self) -> Self {
+        if self.hash_count != other.hash_count || self.bits_per_hash != other.bits_per_hash {
+            panic!("unable to intersect k-m bloom filters with different configurations");
+        }
+        let na = self.element_count();
+        let nb = other.element_count();
+        let naub = self.union(&other).element_count();
+        println!("element count: {}", na + nb - naub);
+        Self {
+            hash_count: self.hash_count,
+            hits: self.hits.intersect(&other.hits),
+            bits_per_hash: self.bits_per_hash,
+            _phantom: self._phantom,
+        }
     }
 
     fn generate_hashes<T>(&self, data: &T) -> (u64, u64)
@@ -101,8 +136,6 @@ where
             self.hits
                 .set(Self::index(i, self.bits_per_hash, hash_a, hash_b), true);
         }
-
-        self.element_count += 1;
     }
 
     fn check<T>(&self, data: &T) -> bool
