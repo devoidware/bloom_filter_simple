@@ -128,26 +128,30 @@ pub type DefaultBloomFilter = KMBloomFilter<ahash::AHasher, DefaultHasher>;
 pub trait BloomFilter {
     /// Insert data into the filter.
     ///
-    /// The filter does not store the data itself. Instead, it hashes the data multiple times using
-    /// different hash functions. The calculated hash values are mapped to specific bits in a
-    /// bitset that are then set to '1'.
-    /// use bloom_filter::{DefaultBloomFilter,BloomFilter};
-    ///  # Examples
-    ///  ```
+    /// # Intended Behavior
+    /// A type implementing BloomFilter should implement *insert* with respect to the following points:
+    /// * It should be possible to insert the same element multiple times.
+    /// * It should be possible to insert any type implementing Hash.
+    ///
+    /// # Examples
+    /// ## How a BloomFilter might be used:
+    /// ```
     /// use bloom_filter::{BloomFilter, DefaultBloomFilter};
+    ///
     /// fn bloom_filter_insert() {
     ///     let mut bloom_filter = DefaultBloomFilter::new(5, 0.001);
     ///     bloom_filter.insert(&"Hello!");
+    ///     bloom_filter.insert(&5);
+    ///     bloom_filter.insert(&"Hello!");
+    ///
+    ///     assert_eq!(true, bloom_filter.check(&"Hello!"));
     /// }
     /// ```
     fn insert<T: Hash>(&mut self, data: &T);
 
     /// Check whether data is contained in the bloom filter.
     ///
-    /// The filter does not store the data itself. This method hashes the given data and maps it to
-    /// specific bits in the internal bitset of the filter. If these bits are all set to '1', 'true'
-    /// is returned, otherwise check returns 'false'.
-    ///
+    /// # Intended Behavior
     /// Checking whether data is contained in a bloom filter must never result in a false negative,
     /// i.e., if an element 'x' has been inserted into the filter, check(&x) will *always* return true.
     ///
@@ -156,8 +160,14 @@ pub trait BloomFilter {
     /// in the bloom filter, and the number of hash functions that are used. When initializing one
     /// of the filters provided in this crate, you can specify the desired false positive probability.
     ///
-    ///  # Examples
-    ///  ```
+    /// A type implementing BloomFilter should implement *check* with respect to the following points:
+    /// * *check(&x)* **must** return *true* if *x* has been inserted into the filter
+    /// * *check(&x)* **can** return *true* even if *x* has **not** been inserted into the filter
+    /// * It should be possible to check any type implementing Hash.
+    ///
+    /// # Examples
+    /// ## How a BloomFilter might be used
+    /// ```
     /// use bloom_filter::{BloomFilter, DefaultBloomFilter};
     /// fn bloom_filter_insert() {
     ///     let mut bloom_filter = DefaultBloomFilter::new(5, 0.001);
