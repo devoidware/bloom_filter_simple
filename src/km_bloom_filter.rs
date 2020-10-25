@@ -57,7 +57,7 @@ where
     H2: Hasher + Default,
 {
     /// Initialize a new instance of KMBloomFilter that guarantees that the false positive rate
-    /// is less or equal than *desired_false_positive_probability* for up to *desired_capacity*
+    /// is less than *desired_false_positive_probability* for up to *desired_capacity*
     /// elements.
     ///
     /// KMBloomFilter uses two hash functions *H1* and *H2* to simulate an arbitrary number of hash

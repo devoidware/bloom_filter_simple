@@ -33,7 +33,9 @@
 //! fn main() {
 //!     // We plan on storing at most 10 elements
 //!     let desired_capacity = 10;
-//!     // We want to assure that the chance of a false positive is less than 0.0001.
+//!     // The chance of a false positive increases with each inserted element. This parameter
+//!     // specifies that it should be less than 0.0001 when the desired capacity has
+//!     // been reached.
 //!     // In other words, the chance that the bloom filter returns *true* when checking whether a
 //!     // **novel** element has been inserted before is less than 0.0001.
 //!     let desired_fp_probability = 0.0001;
@@ -65,7 +67,8 @@
 //! fn main() {
 //!     // We plan on storing at most 10 elements
 //!     let desired_capacity = 10;
-//!     // We want to assure that the chance of a false positive is less than 0.0001.
+//!     // We want to assure that the chance of a false positive is less than 0.0001 for up to
+//!     // desired_capacity elements.
 //!     let desired_fp_probability = 0.0001;
 //!
 //!     // We initialize a new KMBloomFilter by specifying the desired Hashers as type parameters.
