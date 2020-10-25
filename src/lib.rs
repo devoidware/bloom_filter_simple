@@ -36,12 +36,12 @@
 //!     // We want to assure that the chance of a false positive is less than 0.0001.
 //!     // In other words, the chance that the bloom filter returns *true* when checking whether a
 //!     // **novel** element has been inserted before is less than 0.0001.
-//!     let desired_false_positive_probability = 0.0001;
+//!     let desired_fp_probability = 0.0001;
 //!
 //!     // The crate offers a type definition for a default KMBloomFilter that applies 'AHasher' from
 //!     // the 'ahash' crate, and Rust's default hasher. When testing different hash functions,
 //!     // this combinations achieved the best results with respect to filter's false positive probability.
-//!     let mut filter = DefaultBloomFilter::new(desired_capacity, desired_false_positive_probability);
+//!     let mut filter = DefaultBloomFilter::new(desired_capacity, desired_fp_probability);
 //!
 //!     // You can insert any type implementing the Hash trait. The bloom filter does not store the
 //!     // inserted elements but only their hashes. Hence, there is no transfer of ownership required.
@@ -66,7 +66,7 @@
 //!     // We plan on storing at most 10 elements
 //!     let desired_capacity = 10;
 //!     // We want to assure that the chance of a false positive is less than 0.0001.
-//!     let desired_false_positive_probability = 0.0001;
+//!     let desired_fp_probability = 0.0001;
 //!
 //!     // We initialize a new KMBloomFilter by specifying the desired Hashers as type parameters.
 //!     // It is possible to use any type that implements Hasher + Default.
@@ -74,7 +74,7 @@
 //!     // the Hasher trait does not provide an interface for resetting a hasher implementing it.
 //!     // This is required to receive the same hash value when inserting or checking the same element
 //!     // multiple times.
-//!     let mut filter: KMBloomFilter<AHasher, DefaultHasher> = KMBloomFilter::new(desired_capacity, desired_false_positive_probability);
+//!     let mut filter: KMBloomFilter<AHasher, DefaultHasher> = KMBloomFilter::new(desired_capacity, desired_fp_probability);
 //!
 //!     // You can insert any type implementing the Hash trait. The bloom filter does not store the
 //!     // inserted elements but only their hashes. Hence, there is no transfer of ownership required.
@@ -100,9 +100,9 @@ pub use km_bloom_filter::KMBloomFilter;
 pub use seeded_bloom_filter::SeededBloomFilter;
 
 /**
- A default implementation of BloomFilter using ahash::AHasher and collections::hash_map::DefaultHasher.
+ A default implementation of KMBloomFilter using ahash::AHasher and collections::hash_map::DefaultHasher.
 
- DefaultBloomFilter is implemented as a type definition `type DefaultBloomFilter = BloomFilter<ahash::AHasher, DefaultHasher>;`
+ DefaultBloomFilter is implemented as a type definition `type DefaultBloomFilter = KMBloomFilter<ahash::AHasher, DefaultHasher>;`
  # Examples
  ```
  use bloom_filter::{DefaultBloomFilter,BloomFilter};
@@ -126,6 +126,47 @@ pub type DefaultBloomFilter = KMBloomFilter<ahash::AHasher, DefaultHasher>;
 /// This trait defines the basic functionality supported by the bloom filters in this library.
 ///
 pub trait BloomFilter {
+    /// Insert data into the filter.
+    ///
+    /// The filter does not store the data itself. Instead, it hashes the data multiple times using
+    /// different hash functions. The calculated hash values are mapped to specific bits in a
+    /// bitset that are then set to '1'.
+    /// use bloom_filter::{DefaultBloomFilter,BloomFilter};
+    ///  # Examples
+    ///  ```
+    /// use bloom_filter::{BloomFilter, DefaultBloomFilter};
+    /// fn bloom_filter_insert() {
+    ///     let mut bloom_filter = DefaultBloomFilter::new(5, 0.001);
+    ///     bloom_filter.insert(&"Hello!");
+    /// }
+    /// ```
     fn insert<T: Hash>(&mut self, data: &T);
+
+    /// Check whether data is contained in the bloom filter.
+    ///
+    /// The filter does not store the data itself. This method hashes the given data and maps it to
+    /// specific bits in the internal bitset of the filter. If these bits are all set to '1', 'true'
+    /// is returned, otherwise check returns 'false'.
+    ///
+    /// Checking whether data is contained in a bloom filter must never result in a false negative,
+    /// i.e., if an element 'x' has been inserted into the filter, check(&x) will *always* return true.
+    ///
+    /// In contrast, a check can result in false positive, i.e., check(&x) can return true, even if
+    /// x has not been inserted yet. The chance of this happending depends on the number of elements
+    /// in the bloom filter, and the number of hash functions that are used. When initializing one
+    /// of the filters provided in this crate, you can specify the desired false positive probability.
+    ///
+    ///  # Examples
+    ///  ```
+    /// use bloom_filter::{BloomFilter, DefaultBloomFilter};
+    /// fn bloom_filter_insert() {
+    ///     let mut bloom_filter = DefaultBloomFilter::new(5, 0.001);
+    ///     bloom_filter.insert(&"Hello!");
+    ///     // This assert will *never* fail
+    ///     assert_eq!(true, bloom_filter.check(&"Hello!"));
+    ///     // This assert can fail with a probability of p(fp) < 0.001
+    ///     assert_eq!(false, bloom_filter.check(&"Goodbye!"));
+    /// }
+    /// ```
     fn check<T: Hash>(&self, data: &T) -> bool;
 }
