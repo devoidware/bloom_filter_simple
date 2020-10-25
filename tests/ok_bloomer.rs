@@ -165,8 +165,8 @@ fn test_bloom_filter_probability<H1, H2>(
     let allowed_probability = false_positive_probability * (1.0 + relative_error_margin);
     for i in 0..desired_capacity {
         bloomer.insert(&i);
-        assert!(bloomer.false_positive_probability() < allowed_probability);
     }
+    assert!(bloomer.false_positive_probability() < allowed_probability);
 
     let true_checks = (0..(desired_capacity * 2))
         .map(|i| bloomer.check(&i))
@@ -209,8 +209,8 @@ fn test_bloom_filter_probability_random<H1, H2>(
     let allowed_probability = false_positive_probability * (1.0 + relative_error_margin);
     for _ in 0..desired_capacity {
         bloomer.insert(&rng.sample(distribution));
-        assert!(bloomer.false_positive_probability() < allowed_probability);
     }
+    assert!(bloomer.false_positive_probability() < allowed_probability);
 
     let mut rng = rand::rngs::StdRng::from_seed(seed);
     let true_checks = (0..(desired_capacity * 2))
@@ -278,8 +278,8 @@ fn test_seeded_bloom_filter_probability(
     let allowed_probability = false_positive_probability * (1.0 + relative_error_margin);
     for i in 0..desired_capacity {
         bloomer.insert(&i);
-        assert!(bloomer.false_positive_probability() < allowed_probability);
     }
+    assert!(bloomer.false_positive_probability() < allowed_probability);
 
     let true_checks = (0..(desired_capacity * 2))
         .map(|i| bloomer.check(&i))
