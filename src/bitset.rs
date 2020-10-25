@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, ops::Add};
 
 pub struct Bitset {
     bytes: Vec<u8>,
@@ -62,6 +62,28 @@ impl Debug for Bitset {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let bits: Vec<bool> = (0..self.length).map(|i| self.get(i)).collect();
         write!(f, "Bitset{{length: {}, data: {:?}}}", self.len(), bits)
+    }
+}
+
+impl Add for Bitset {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self::Output {
+        if self.length != other.length {
+            panic!(
+                "unable to add bitsets with different lengths: {} and {}",
+                self.length, other.length
+            );
+        }
+        Self {
+            bytes: self
+                .bytes
+                .into_iter()
+                .zip(other.bytes.into_iter())
+                .map(|(a, b)| a | b)
+                .collect(),
+            length: self.length,
+        }
     }
 }
 
@@ -245,5 +267,41 @@ mod tests {
         bitset.set(8, false);
         assert_eq!(false, bitset.get(8));
         assert_eq!(0, get_number_of_set_bits(&bitset));
+    }
+
+    #[test]
+    fn add_two_bitsets() {
+        let mut bitset_a = Bitset::new(6);
+        assert_eq!(0, get_number_of_set_bits(&bitset_a));
+
+        bitset_a.set(0, true);
+        assert_eq!(true, bitset_a.get(0));
+        assert_eq!(1, get_number_of_set_bits(&bitset_a));
+
+        bitset_a.set(3, true);
+        assert_eq!(true, bitset_a.get(3));
+        assert_eq!(2, get_number_of_set_bits(&bitset_a));
+
+        let mut bitset_b = Bitset::new(6);
+        assert_eq!(0, get_number_of_set_bits(&bitset_b));
+
+        bitset_b.set(2, true);
+        assert_eq!(true, bitset_b.get(2));
+        assert_eq!(1, get_number_of_set_bits(&bitset_b));
+
+        bitset_b.set(3, true);
+        assert_eq!(true, bitset_b.get(3));
+        assert_eq!(2, get_number_of_set_bits(&bitset_b));
+
+        bitset_b.set(5, true);
+        assert_eq!(true, bitset_b.get(5));
+        assert_eq!(3, get_number_of_set_bits(&bitset_b));
+
+        let bitset = bitset_a + bitset_b;
+        assert_eq!(4, get_number_of_set_bits(&bitset));
+        assert_eq!(true, bitset.get(0));
+        assert_eq!(true, bitset.get(2));
+        assert_eq!(true, bitset.get(3));
+        assert_eq!(true, bitset.get(5));
     }
 }
