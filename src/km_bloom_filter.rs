@@ -77,7 +77,7 @@ where
     ///     let desired_fp_probability = 0.0001;
     ///
     ///     // We initialize a new KMBloomFilter by specifying the desired Hashers as type parameters
-    ///     let mut filter: KMBloomFilter<DefaultHasher, DefaultHasher> =
+    ///     let mut filter: KMBloomFilter<AHasher, DefaultHasher> =
     ///         KMBloomFilter::new(desired_capacity, desired_fp_probability);
     /// }
     /// ```
@@ -107,7 +107,7 @@ where
             .powf(self.hash_count as f64)
     }
 
-    /// Return the number of hash functions that are used by this instance.
+    /// Return the number of hash functions that are simulated by this instance.
     pub fn hash_count(&self) -> usize {
         self.hash_count
     }
