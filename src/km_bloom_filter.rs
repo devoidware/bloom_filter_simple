@@ -6,10 +6,39 @@ use std::{
 
 use crate::{bitset::Bitset, BloomFilter};
 
-/// Bloom filter implementation using the improvements described in
-/// Kirsch A., Mitzenmacher M. (2006) Less Hashing, Same Performance: Building a Better Bloom Filter.
+/// Bloom filter implementation using the improvements described Kirsch and Mitzenmacher:
+///
+/// > Kirsch A., Mitzenmacher M. (2006) Less Hashing, Same Performance: Building a Better Bloom Filter.
 /// In: Azar Y., Erlebach T. (eds) Algorithms – ESA 2006. ESA 2006. Lecture Notes in Computer Science, vol 4168.
 /// Springer, Berlin, Heidelberg. https://doi.org/10.1007/11841036_42
+///
+/// # Examples
+/// ```
+/// use bloom_filter::{BloomFilter,KMBloomFilter};
+/// use ahash::AHasher;
+/// use std::collections::hash_map::DefaultHasher;
+///
+/// fn main() {
+///     // We plan on storing at most 10 elements
+///     let desired_capacity = 10;
+///     // We want to assure that the chance of a false positive is less than 0.0001.
+///     let desired_fp_probability = 0.0001;
+///
+///     // We initialize a new KMBloomFilter by specifying the desired Hashers as type parameters.
+///     let mut filter: KMBloomFilter<AHasher, DefaultHasher> = KMBloomFilter::new(desired_capacity, desired_fp_probability);
+///
+///     // You can insert any type implementing the Hash trait. The bloom filter does not store the
+///     // inserted elements but only their hashes. Hence, there is no transfer of ownership required.
+///     filter.insert(&5i32);
+///     filter.insert(&"Some text");
+///     filter.insert(&10_000usize);
+///
+///     // You can check whether a value has been inserted into by the filter before.
+///     assert_eq!(false, filter.check(&3));
+///     assert_eq!(true, filter.check(&5));
+///     assert_eq!(true, filter.check(&"Some text"));
+/// }
+/// ```
 pub struct KMBloomFilter<H1, H2>
 where
     H1: Hasher + Default,
@@ -26,6 +55,31 @@ where
     H1: Hasher + Default,
     H2: Hasher + Default,
 {
+    /// Initialize a new instance of KMBloomFilter that guarantees that the false positive rate
+    /// is less than *desired_false_positive_probability* for up to *desired_capacity*
+    /// elements.
+    ///
+    /// KMBloomFilter uses two hash functions *H1* and *H2* to simulate an arbitrary number of hash
+    /// functions. *H1* and *H2* are specified as type parameters (see examples): KMBloomFilter<H1, H2>.
+    ///
+    /// ***You have to use two different hash functions for *H1* and *H2*!***
+    /// # Examples
+    /// ```
+    /// use bloom_filter::{BloomFilter,KMBloomFilter};
+    /// use ahash::AHasher;
+    /// use std::collections::hash_map::DefaultHasher;
+    ///
+    /// fn main() {
+    ///     // We plan on storing at most 10 elements
+    ///     let desired_capacity = 10;
+    ///     // We want to assure that the chance of a false positive is less than 0.0001.
+    ///     let desired_fp_probability = 0.0001;
+    ///
+    ///     // We initialize a new KMBloomFilter by specifying the desired Hashers as type parameters
+    ///     let mut filter: KMBloomFilter<AHasher, DefaultHasher> =
+    ///         KMBloomFilter::new(desired_capacity, desired_fp_probability);
+    /// }
+    /// ```
     pub fn new(desired_capacity: usize, desired_false_positive_probability: f64) -> Self {
         // using formulas to calculate optimum size and hash function count
         // m = ceil((n * ln(p)) / ln(1 / pow(2, ln(2)))); ln (1/(2^ln(2))) is approx. -0.48045301391
@@ -52,12 +106,14 @@ where
                 .ln()
     }
 
-    /// Current approximate probability of checks returning a false positive.
+    /// Return the current approximate false positive probability which depends on the current number of elements
+    /// in the filter.
     pub fn false_positive_probability(&self) -> f64 {
         (1.0 - std::f64::consts::E.powf(-self.element_count() / self.bits_per_hash as f64))
             .powf(self.hash_count as f64)
     }
 
+    /// Return the number of hash functions that are simulated by this instance.
     pub fn hash_count(&self) -> usize {
         self.hash_count
     }

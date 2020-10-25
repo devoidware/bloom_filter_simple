@@ -2,6 +2,7 @@ use bloom_filter::{BloomFilter, DefaultBloomFilter, SeededBloomFilter};
 use std::time::Instant;
 
 #[test]
+#[ignore]
 fn measure_inserting_km() {
     let mut element_count = 2;
     for _ in 0..23 {
@@ -25,6 +26,7 @@ fn inserting_km(element_count: usize) {
 }
 
 #[test]
+#[ignore]
 fn measure_inserting_seeded() {
     let mut element_count = 2;
     for _ in 0..23 {
@@ -48,6 +50,7 @@ fn inserting_seeded(element_count: usize) {
 }
 
 #[test]
+#[ignore]
 fn measure_checking_km() {
     let mut element_count = 2;
     for _ in 0..23 {
@@ -74,6 +77,7 @@ fn checking_km(element_count: usize) {
 }
 
 #[test]
+#[ignore]
 fn measure_checking_seeded() {
     let mut element_count = 2;
     for _ in 0..23 {

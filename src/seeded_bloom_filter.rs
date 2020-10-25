@@ -3,6 +3,10 @@ use ahash::AHasher;
 use std::fmt::Debug;
 use std::hash::{Hash, Hasher};
 
+/// A bloom filter that uses a single Hasher that can be seeded to simulate an arbitrary number
+/// of hash functions.
+///
+/// Internally, the implementation uses *ahash::AHasher*.
 pub struct SeededBloomFilter {
     hash_count: usize,
     hits: Bitset,
@@ -11,6 +15,28 @@ pub struct SeededBloomFilter {
 }
 
 impl SeededBloomFilter {
+    /// Initialize a new instance of SeededBloomFilter that guarantees that the false positive rate
+    /// is less than *desired_false_positive_probability* for up to *desired_capacity*
+    /// elements.
+    ///
+    /// SeededBloomFilter uses a single hash function that can be seeded to simulate an arbitrary
+    /// number of hash functions.
+    ///
+    /// # Examples
+    /// ```
+    /// use bloom_filter::{BloomFilter,SeededBloomFilter};
+    ///
+    /// fn main() {
+    ///     // We plan on storing at most 10 elements
+    ///     let desired_capacity = 10;
+    ///     // We want to assure that the chance of a false positive is less than 0.0001.
+    ///     let desired_fp_probability = 0.0001;
+    ///
+    ///     // We initialize a new SeededBloomFilter by specifying the desired Hashers as type
+    ///     // parameters
+    ///     let mut filter = SeededBloomFilter::new(desired_capacity, desired_fp_probability);
+    /// }
+    /// ```
     pub fn new(desired_capacity: usize, desired_false_positive_probability: f64) -> Self {
         // using formulas to calculate optimum size and hash function count
         // m = ceil((n * ln(p)) / ln(1 / pow(2, ln(2)))); ln (1/(2^ln(2))) is approx. -0.48045301391
@@ -29,11 +55,14 @@ impl SeededBloomFilter {
         }
     }
 
+    /// Return the current false positive probability which depends on the current number of elements
+    /// in the filter.
     pub fn false_positive_probability(&self) -> f64 {
         (1.0 - std::f64::consts::E.powf(-(self.element_count as f64) / self.bits_per_hash as f64))
             .powf(self.hash_count as f64)
     }
 
+    /// Return the number of hash functions that are simulated by this instance.
     pub fn hash_count(&self) -> usize {
         self.hash_count
     }
