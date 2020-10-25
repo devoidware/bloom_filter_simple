@@ -27,6 +27,12 @@
 //!
 //! # Examples
 //! ## Default Bloom Filter
+//! The crate offers a default type for a KMBloomFilter that uses *ahash::AHasher* and Rust's
+//! *std::collections::hash_map::DefaultHasher* to simulate more hash functions. When comparing
+//! different hash functions for use by KMBloomFilter, this combination yielded the best results
+//! with respect to the filter's false positive probability.
+//!
+//! We recommend using DefaultBloomFilter for quickly getting started.
 //! ```
 //! use bloom_filter::{BloomFilter,DefaultBloomFilter};
 //!
@@ -40,9 +46,6 @@
 //!     // **novel** element has been inserted before is less than 0.0001.
 //!     let desired_fp_probability = 0.0001;
 //!
-//!     // The crate offers a type definition for a default KMBloomFilter that applies 'AHasher' from
-//!     // the 'ahash' crate, and Rust's default hasher. When testing different hash functions,
-//!     // this combinations achieved the best results with respect to filter's false positive probability.
 //!     let mut filter = DefaultBloomFilter::new(desired_capacity, desired_fp_probability);
 //!
 //!     // You can insert any type implementing the Hash trait. The bloom filter does not store the
@@ -59,6 +62,7 @@
 //! ```
 //!
 //! ## KMBloomFilter
+//! Initialization and application of a KMBloomFilter.
 //! ```
 //! use bloom_filter::{BloomFilter,KMBloomFilter};
 //! use ahash::AHasher;
@@ -78,6 +82,34 @@
 //!     // This is required to receive the same hash value when inserting or checking the same element
 //!     // multiple times.
 //!     let mut filter: KMBloomFilter<AHasher, DefaultHasher> = KMBloomFilter::new(desired_capacity, desired_fp_probability);
+//!
+//!     // You can insert any type implementing the Hash trait. The bloom filter does not store the
+//!     // inserted elements but only their hashes. Hence, there is no transfer of ownership required.
+//!     filter.insert(&5i32);
+//!     filter.insert(&"Some text");
+//!     filter.insert(&10_000usize);
+//!
+//!     // You can check whether a value has been inserted into by the filter before.
+//!     assert_eq!(false, filter.check(&3));
+//!     assert_eq!(true, filter.check(&5));
+//!     assert_eq!(true, filter.check(&"Some text"));
+//! }
+//! ```
+//!
+//! ## SeededBloomFilter
+//! Initialization and application of a SeededBloomFilter.
+//! ```
+//! use bloom_filter::{BloomFilter,SeededBloomFilter};
+//!
+//! fn main() {
+//!     // We plan on storing at most 10 elements
+//!     let desired_capacity = 10;
+//!     // We want to assure that the chance of a false positive is less than 0.0001 for up to
+//!     // desired_capacity elements.
+//!     let desired_fp_probability = 0.0001;
+//!
+//!     // A SeededBloomFilter uses a single seeded *ahash::AHasher* internally.
+//!     let mut filter = SeededBloomFilter::new(desired_capacity, desired_fp_probability);
 //!
 //!     // You can insert any type implementing the Hash trait. The bloom filter does not store the
 //!     // inserted elements but only their hashes. Hence, there is no transfer of ownership required.
@@ -137,7 +169,7 @@ pub trait BloomFilter {
     /// * It should be possible to insert any type implementing Hash.
     ///
     /// # Examples
-    /// ## How a BloomFilter might be used:
+    /// How *insert* of a type implementing BloomFilter might be used:
     /// ```
     /// use bloom_filter::{BloomFilter, DefaultBloomFilter};
     ///
@@ -169,7 +201,7 @@ pub trait BloomFilter {
     /// * It should be possible to check any type implementing Hash.
     ///
     /// # Examples
-    /// ## How a BloomFilter might be used
+    /// How *check* of a type implementing BloomFilter might be used:
     /// ```
     /// use bloom_filter::{BloomFilter, DefaultBloomFilter};
     /// fn bloom_filter_insert() {
