@@ -44,9 +44,10 @@ where
     H1: Hasher + Default,
     H2: Hasher + Default,
 {
-    hash_count: usize,
-    hits: Bitset,
-    bits_per_hash: usize,
+    number_of_hashers: usize,
+    bitset: Bitset,
+    bits_per_hasher: usize,
+    // Phantom data for saving which concrete Hasher types are used
     _phantom: PhantomData<(H1, H2)>,
 }
 
@@ -91,47 +92,47 @@ where
             ((bit_count as f64 / desired_capacity as f64) * 2.0f64.ln()).round() as usize;
         let bits_per_hash = (bit_count / hash_count as f64).ceil() as usize;
         Self {
-            hits: Bitset::new(bits_per_hash * hash_count),
-            hash_count,
-            bits_per_hash,
+            bitset: Bitset::new(bits_per_hash * hash_count),
+            number_of_hashers: hash_count,
+            bits_per_hasher: bits_per_hash,
             _phantom: PhantomData,
         }
     }
 
     /// Approximate number of elements stored.
     pub fn element_count(&self) -> f64 {
-        -(self.bits_per_hash as f64)
+        -(self.bits_per_hasher as f64)
             * (1.0
-                - (self.hits.count_ones() as f64) / ((self.hash_count * self.bits_per_hash) as f64))
+                - (self.bitset.count_ones() as f64) / ((self.number_of_hashers * self.bits_per_hasher) as f64))
                 .ln()
     }
 
     /// Return the current approximate false positive probability which depends on the current number of elements
     /// in the filter.
     pub fn false_positive_probability(&self) -> f64 {
-        (1.0 - std::f64::consts::E.powf(-self.element_count() / self.bits_per_hash as f64))
-            .powf(self.hash_count as f64)
+        (1.0 - std::f64::consts::E.powf(-self.element_count() / self.bits_per_hasher as f64))
+            .powf(self.number_of_hashers as f64)
     }
 
     /// Return the number of hash functions that are simulated by this instance.
     pub fn hash_count(&self) -> usize {
-        self.hash_count
+        self.number_of_hashers
     }
 
     pub fn union(&self, other: &Self) -> Self {
-        if self.hash_count != other.hash_count || self.bits_per_hash != other.bits_per_hash {
+        if self.number_of_hashers != other.number_of_hashers || self.bits_per_hasher != other.bits_per_hasher {
             panic!("unable to union k-m bloom filters with different configurations");
         }
         Self {
-            hash_count: self.hash_count,
-            hits: self.hits.union(&other.hits),
-            bits_per_hash: self.bits_per_hash,
+            number_of_hashers: self.number_of_hashers,
+            bitset: self.bitset.union(&other.bitset),
+            bits_per_hasher: self.bits_per_hasher,
             _phantom: self._phantom,
         }
     }
 
     pub fn intersect(&self, other: &Self) -> Self {
-        if self.hash_count != other.hash_count || self.bits_per_hash != other.bits_per_hash {
+        if self.number_of_hashers != other.number_of_hashers || self.bits_per_hasher != other.bits_per_hasher {
             panic!("unable to intersect k-m bloom filters with different configurations");
         }
         let na = self.element_count();
@@ -139,9 +140,9 @@ where
         let naub = self.union(&other).element_count();
         println!("element count: {}", na + nb - naub);
         Self {
-            hash_count: self.hash_count,
-            hits: self.hits.intersect(&other.hits),
-            bits_per_hash: self.bits_per_hash,
+            number_of_hashers: self.number_of_hashers,
+            bitset: self.bitset.intersect(&other.bitset),
+            bits_per_hasher: self.bits_per_hasher,
             _phantom: self._phantom,
         }
     }
@@ -173,7 +174,7 @@ where
     H2: Hasher + Default,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "KMBloomFilter{{{:?}}}", self.hits)
+        write!(f, "KMBloomFilter{{{:?}}}", self.bitset)
     }
 }
 
@@ -188,9 +189,9 @@ where
     {
         let (hash_a, hash_b) = self.generate_hashes(&data);
 
-        for i in 0..self.hash_count {
-            self.hits
-                .set(Self::index(i, self.bits_per_hash, hash_a, hash_b), true);
+        for i in 0..self.number_of_hashers {
+            self.bitset
+                .set(Self::index(i, self.bits_per_hasher, hash_a, hash_b), true);
         }
     }
 
@@ -200,10 +201,10 @@ where
     {
         let (hash_a, hash_b) = self.generate_hashes(data);
 
-        for i in 0..self.hash_count {
+        for i in 0..self.number_of_hashers {
             if !self
-                .hits
-                .get(Self::index(i, self.bits_per_hash, hash_a, hash_b))
+                .bitset
+                .get(Self::index(i, self.bits_per_hasher, hash_a, hash_b))
             {
                 return false;
             }

@@ -8,9 +8,9 @@ use std::hash::{Hash, Hasher};
 ///
 /// Internally, the implementation uses *ahash::AHasher*.
 pub struct SeededBloomFilter {
-    hash_count: usize,
-    hits: Bitset,
-    bits_per_hash: usize,
+    number_of_hashers: usize,
+    bitset: Bitset,
+    bits_per_hasher: usize,
     element_count: usize,
 }
 
@@ -48,9 +48,9 @@ impl SeededBloomFilter {
             ((bit_count as f64 / desired_capacity as f64) * 2.0f64.ln()).round() as usize;
         let bits_per_hash = (bit_count / hash_count as f64).ceil() as usize;
         Self {
-            hits: Bitset::new(bits_per_hash * hash_count),
-            hash_count,
-            bits_per_hash,
+            bitset: Bitset::new(bits_per_hash * hash_count),
+            number_of_hashers: hash_count,
+            bits_per_hasher: bits_per_hash,
             element_count: 0,
         }
     }
@@ -58,13 +58,13 @@ impl SeededBloomFilter {
     /// Return the current false positive probability which depends on the current number of elements
     /// in the filter.
     pub fn false_positive_probability(&self) -> f64 {
-        (1.0 - std::f64::consts::E.powf(-(self.element_count as f64) / self.bits_per_hash as f64))
-            .powf(self.hash_count as f64)
+        (1.0 - std::f64::consts::E.powf(-(self.element_count as f64) / self.bits_per_hasher as f64))
+            .powf(self.number_of_hashers as f64)
     }
 
     /// Return the number of hash functions that are simulated by this instance.
     pub fn hash_count(&self) -> usize {
-        self.hash_count
+        self.number_of_hashers
     }
 
     fn index<T>(i: usize, bits_per_hash: usize, data: &T) -> usize
@@ -79,7 +79,7 @@ impl SeededBloomFilter {
 
 impl Debug for SeededBloomFilter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "SeededBloomFilter{{{:?}}}", self.hits)
+        write!(f, "SeededBloomFilter{{{:?}}}", self.bitset)
     }
 }
 
@@ -88,9 +88,9 @@ impl BloomFilter for SeededBloomFilter {
     where
         T: Hash,
     {
-        for i in 0..self.hash_count {
-            self.hits
-                .set(Self::index(i, self.bits_per_hash, &data), true);
+        for i in 0..self.number_of_hashers {
+            self.bitset
+                .set(Self::index(i, self.bits_per_hasher, &data), true);
         }
 
         self.element_count += 1;
@@ -100,8 +100,8 @@ impl BloomFilter for SeededBloomFilter {
     where
         T: Hash,
     {
-        for i in 0..self.hash_count {
-            if !self.hits.get(Self::index(i, self.bits_per_hash, &data)) {
+        for i in 0..self.number_of_hashers {
+            if !self.bitset.get(Self::index(i, self.bits_per_hasher, &data)) {
                 return false;
             }
         }
