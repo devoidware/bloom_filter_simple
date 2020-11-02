@@ -112,6 +112,8 @@ where
 
     /// Return the current approximate false positive probability which depends on the current
     /// number of elements in the filter.
+    ///
+    /// The probability is given as a value in the interval [0,1]
     pub fn approximate_current_false_positive_probability(&self) -> f64 {
         approximate_false_positive_probability(
             self.number_of_hashers,
