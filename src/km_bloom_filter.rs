@@ -103,7 +103,8 @@ where
     pub fn element_count(&self) -> f64 {
         -(self.bits_per_hasher as f64)
             * (1.0
-                - (self.bitset.count_ones() as f64) / ((self.number_of_hashers * self.bits_per_hasher) as f64))
+                - (self.bitset.count_ones() as f64)
+                    / ((self.number_of_hashers * self.bits_per_hasher) as f64))
                 .ln()
     }
 
@@ -120,7 +121,9 @@ where
     }
 
     pub fn union(&self, other: &Self) -> Self {
-        if self.number_of_hashers != other.number_of_hashers || self.bits_per_hasher != other.bits_per_hasher {
+        if self.number_of_hashers != other.number_of_hashers
+            || self.bits_per_hasher != other.bits_per_hasher
+        {
             panic!("unable to union k-m bloom filters with different configurations");
         }
         Self {
@@ -132,7 +135,9 @@ where
     }
 
     pub fn intersect(&self, other: &Self) -> Self {
-        if self.number_of_hashers != other.number_of_hashers || self.bits_per_hasher != other.bits_per_hasher {
+        if self.number_of_hashers != other.number_of_hashers
+            || self.bits_per_hasher != other.bits_per_hasher
+        {
             panic!("unable to intersect k-m bloom filters with different configurations");
         }
         let na = self.element_count();

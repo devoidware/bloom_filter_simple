@@ -11,7 +11,6 @@ pub struct SeededBloomFilter {
     number_of_hashers: usize,
     bitset: Bitset,
     bits_per_hasher: usize,
-    element_count: usize,
 }
 
 impl SeededBloomFilter {
@@ -51,14 +50,22 @@ impl SeededBloomFilter {
             bitset: Bitset::new(bits_per_hash * hash_count),
             number_of_hashers: hash_count,
             bits_per_hasher: bits_per_hash,
-            element_count: 0,
         }
     }
 
-    /// Return the current false positive probability which depends on the current number of elements
-    /// in the filter.
+    /// Approximate number of elements stored.
+    pub fn element_count(&self) -> f64 {
+        -(self.bits_per_hasher as f64)
+            * (1.0
+            - (self.bitset.count_ones() as f64)
+            / ((self.number_of_hashers * self.bits_per_hasher) as f64))
+            .ln()
+    }
+
+    /// Return the current approximate false positive probability which depends on the current
+    /// number of elements in the filter.
     pub fn false_positive_probability(&self) -> f64 {
-        (1.0 - std::f64::consts::E.powf(-(self.element_count as f64) / self.bits_per_hasher as f64))
+        (1.0 - std::f64::consts::E.powf(-self.element_count() / self.bits_per_hasher as f64))
             .powf(self.number_of_hashers as f64)
     }
 
@@ -92,8 +99,6 @@ impl BloomFilter for SeededBloomFilter {
             self.bitset
                 .set(Self::index(i, self.bits_per_hasher, &data), true);
         }
-
-        self.element_count += 1;
     }
 
     fn check<T>(&self, data: &T) -> bool

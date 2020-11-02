@@ -222,3 +222,5 @@ pub trait BloomFilter {
     /// ```
     fn check<T: Hash>(&self, data: &T) -> bool;
 }
+
+
