@@ -7,9 +7,6 @@ pub struct Bitset {
 
 impl Bitset {
     pub fn new(length: usize) -> Self {
-        if length == 0 {
-            panic!("A Bitset should contain at least one element")
-        }
         let byte_length = if length % 8 == 0 {
             length / 8
         } else {

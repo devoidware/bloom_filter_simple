@@ -1,5 +1,6 @@
 use crate::{
-    approximate_element_count, approximate_false_positive_probability, bitset::Bitset, BloomFilter,
+    approximate_element_count, approximate_false_positive_probability, bitset::Bitset,
+    optimal_bit_count, optimal_number_of_hashers, BloomFilter,
 };
 use ahash::AHasher;
 use std::fmt::Debug;
@@ -39,19 +40,16 @@ impl SeededBloomFilter {
     /// }
     /// ```
     pub fn new(desired_capacity: usize, desired_false_positive_probability: f64) -> Self {
-        // using formulas to calculate optimum size and hash function count
-        // m = ceil((n * ln(p)) / ln(1 / pow(2, ln(2)))); ln (1/(2^ln(2))) is approx. -0.48045301391
-        // k = round((m / n) * ln(2)); ln(2) is approx. 0.693147
-        let bit_count = ((desired_capacity as f64 * desired_false_positive_probability.ln())
-            / (1.0 / 2.0f64.powf(2.0f64.ln())).ln())
-        .ceil();
-        let hash_count =
-            ((bit_count as f64 / desired_capacity as f64) * 2.0f64.ln()).round() as usize;
-        let bits_per_hash = (bit_count / hash_count as f64).ceil() as usize;
+        if desired_capacity == 0 {
+            panic!("an empty bloom filter is not defined");
+        }
+        let bit_count = optimal_bit_count(desired_capacity, desired_false_positive_probability);
+        let number_of_hashers = optimal_number_of_hashers(desired_capacity, bit_count);
+        let bits_per_hasher = (bit_count as f64 / number_of_hashers as f64).ceil() as usize;
         Self {
-            bitset: Bitset::new(bits_per_hash * hash_count),
-            number_of_hashers: hash_count,
-            bits_per_hasher: bits_per_hash,
+            bitset: Bitset::new(bits_per_hasher * number_of_hashers),
+            number_of_hashers,
+            bits_per_hasher,
         }
     }
 
