@@ -140,10 +140,6 @@ where
         {
             panic!("unable to intersect k-m bloom filters with different configurations");
         }
-        let na = self.approximate_element_count();
-        let nb = other.approximate_element_count();
-        let naub = self.union(&other).approximate_element_count();
-        println!("element count: {}", na + nb - naub);
         Self {
             number_of_hashers: self.number_of_hashers,
             bitset: self.bitset.intersect(&other.bitset),

@@ -9,17 +9,26 @@ fn bloom_filter() {
     let mut bloom_filter = DefaultBloomFilter::new(3, 0.7);
 
     println!("Bloom_filter before insert: {:?}", bloom_filter);
-    println!("Probability: {}", bloom_filter.approximate_current_false_positive_probability());
+    println!(
+        "Probability: {}",
+        bloom_filter.approximate_current_false_positive_probability()
+    );
 
     bloom_filter.insert(&5);
 
     println!("Bloom_filter after five: {:?}", bloom_filter);
-    println!("Probability: {}", bloom_filter.approximate_current_false_positive_probability());
+    println!(
+        "Probability: {}",
+        bloom_filter.approximate_current_false_positive_probability()
+    );
 
     bloom_filter.insert(&3);
 
     println!("Bloom_filter after three: {:?}", bloom_filter);
-    println!("Probability: {}", bloom_filter.approximate_current_false_positive_probability());
+    println!(
+        "Probability: {}",
+        bloom_filter.approximate_current_false_positive_probability()
+    );
 
     assert!(bloom_filter.contains(&3));
     assert!(bloom_filter.contains(&5));
@@ -161,7 +170,6 @@ fn test_bloom_filter_probability<H1, H2>(
         "Desired false positive probability: {}",
         false_positive_probability
     );
-    println!("Calculated hash count: {}", bloom_filter.hash_count());
     println!(
         "Calculated element count: {}",
         bloom_filter.approximate_element_count()
@@ -209,7 +217,6 @@ fn test_bloom_filter_probability_random<H1, H2>(
         "Desired false positive probability: {}",
         false_positive_probability
     );
-    println!("Calculated hash count: {}", bloom_filter.hash_count());
     println!(
         "Calculated element count: {}",
         bloom_filter.approximate_element_count()
@@ -251,7 +258,6 @@ fn test_seeded_bloom_filter_probability(
         "Desired false positive probability: {}",
         false_positive_probability
     );
-    println!("Calculated hash count: {}", bloom_filter.hash_count());
     println!("Positive check count: {}", true_checks);
     println!(
         "Calculated false positive probability: {} ({})",
@@ -339,7 +345,6 @@ fn km_bloom_filter_union_test() {
         "Desired false positive probability: {}",
         false_positive_probability
     );
-    println!("Calculated hash count: {}", bloom_filter.hash_count());
     println!(
         "Calculated element count: {}",
         bloom_filter.approximate_element_count()
@@ -407,7 +412,6 @@ fn km_bloom_filter_intersect_test() {
         "Desired false positive probability: {}",
         false_positive_probability
     );
-    println!("Calculated hash count: {}", bloom_filter.hash_count());
     println!(
         "Calculated element count: {}",
         bloom_filter.approximate_element_count()
