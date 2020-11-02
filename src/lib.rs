@@ -62,9 +62,9 @@
 //!     filter.insert(&10_000usize);
 //!
 //!     // You can check whether a value has been inserted into by the filter before.
-//!     assert_eq!(false, filter.check(&3));
-//!     assert_eq!(true, filter.check(&5));
-//!     assert_eq!(true, filter.check(&"Some text"));
+//!     assert_eq!(false, filter.contains(&3));
+//!     assert_eq!(true, filter.contains(&5));
+//!     assert_eq!(true, filter.contains(&"Some text"));
 //! }
 //! ```
 //!
@@ -97,9 +97,9 @@
 //!     filter.insert(&10_000usize);
 //!
 //!     // You can check whether a value has been inserted into by the filter before.
-//!     assert_eq!(false, filter.check(&3));
-//!     assert_eq!(true, filter.check(&5));
-//!     assert_eq!(true, filter.check(&"Some text"));
+//!     assert_eq!(false, filter.contains(&3));
+//!     assert_eq!(true, filter.contains(&5));
+//!     assert_eq!(true, filter.contains(&"Some text"));
 //! }
 //! ```
 //!
@@ -125,9 +125,9 @@
 //!     filter.insert(&10_000usize);
 //!
 //!     // You can check whether a value has been inserted into by the filter before.
-//!     assert_eq!(false, filter.check(&3));
-//!     assert_eq!(true, filter.check(&5));
-//!     assert_eq!(true, filter.check(&"Some text"));
+//!     assert_eq!(false, filter.contains(&3));
+//!     assert_eq!(true, filter.contains(&5));
+//!     assert_eq!(true, filter.contains(&"Some text"));
 //! }
 //! ```
 
@@ -195,20 +195,20 @@ pub trait BloomFilter {
     ///
     /// # Intended Behavior
     /// Checking whether data is contained in a bloom filter must never result in a false negative,
-    /// i.e., if an element 'x' has been inserted into the filter, check(&x) will *always* return true.
+    /// i.e., if an element 'x' has been inserted into the filter, contains(&x) will *always* return true.
     ///
-    /// In contrast, a check can result in false positive, i.e., check(&x) can return true, even if
+    /// In contrast, contains can result in false positive, i.e., contains(&x) can return true, even if
     /// x has not been inserted yet. The chance of this happending depends on the number of elements
     /// in the bloom filter, and the number of hash functions that are used. When initializing one
     /// of the filters provided in this crate, you can specify the desired false positive probability.
     ///
-    /// A type implementing BloomFilter should implement *check* with respect to the following points:
-    /// * *check(&x)* **must** return *true* if *x* has been inserted into the filter
-    /// * *check(&x)* **can** return *true* even if *x* has **not** been inserted into the filter
+    /// A type implementing BloomFilter should implement *contains* with respect to the following points:
+    /// * *contains(&x)* **must** return *true* if *x* has been inserted into the filter
+    /// * *contains(&x)* **can** return *true* even if *x* has **not** been inserted into the filter
     /// * It should be possible to check any type implementing Hash.
     ///
     /// # Examples
-    /// How *check* of a type implementing BloomFilter might be used:
+    /// How contains of a type implementing BloomFilter might be used:
     /// ```
     /// use bloom_filter::{BloomFilter, DefaultBloomFilter};
     /// fn bloom_filter_insert() {
@@ -220,7 +220,26 @@ pub trait BloomFilter {
     ///     assert_eq!(false, bloom_filter.check(&"Goodbye!"));
     /// }
     /// ```
-    fn check<T: Hash>(&self, data: &T) -> bool;
+    fn contains<T: Hash>(&self, data: &T) -> bool;
 }
 
+/// Approximate number of elements stored.
+fn approximate_element_count(
+    number_of_hashers: usize,
+    bits_per_hasher: usize,
+    number_of_ones: usize,
+) -> f64 {
+    -(bits_per_hasher as f64)
+        * (1.0 - (number_of_ones as f64) / ((number_of_hashers * bits_per_hasher) as f64)).ln()
+}
 
+/// Return the current approximate false positive probability which depends on the current
+/// number of elements in the filter.
+fn approximate_false_positive_probability(
+    number_of_hashers: usize,
+    bits_per_hahser: usize,
+    element_count: f64,
+) -> f64 {
+    (1.0 - std::f64::consts::E.powf(-element_count / bits_per_hahser as f64))
+        .powf(number_of_hashers as f64)
+}

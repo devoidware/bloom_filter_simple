@@ -1,4 +1,6 @@
-use crate::{bitset::Bitset, BloomFilter};
+use crate::{
+    approximate_element_count, approximate_false_positive_probability, bitset::Bitset, BloomFilter,
+};
 use ahash::AHasher;
 use std::fmt::Debug;
 use std::hash::{Hash, Hasher};
@@ -54,24 +56,22 @@ impl SeededBloomFilter {
     }
 
     /// Approximate number of elements stored.
-    pub fn element_count(&self) -> f64 {
-        -(self.bits_per_hasher as f64)
-            * (1.0
-            - (self.bitset.count_ones() as f64)
-            / ((self.number_of_hashers * self.bits_per_hasher) as f64))
-            .ln()
+    pub fn approximate_element_count(&self) -> f64 {
+        approximate_element_count(
+            self.number_of_hashers,
+            self.bits_per_hasher,
+            self.bitset.count_ones(),
+        )
     }
 
     /// Return the current approximate false positive probability which depends on the current
     /// number of elements in the filter.
-    pub fn false_positive_probability(&self) -> f64 {
-        (1.0 - std::f64::consts::E.powf(-self.element_count() / self.bits_per_hasher as f64))
-            .powf(self.number_of_hashers as f64)
-    }
-
-    /// Return the number of hash functions that are simulated by this instance.
-    pub fn hash_count(&self) -> usize {
-        self.number_of_hashers
+    pub fn approximate_current_false_positive_probability(&self) -> f64 {
+        approximate_false_positive_probability(
+            self.number_of_hashers,
+            self.bits_per_hasher,
+            self.approximate_element_count(),
+        )
     }
 
     fn index<T>(i: usize, bits_per_hash: usize, data: &T) -> usize
@@ -101,7 +101,7 @@ impl BloomFilter for SeededBloomFilter {
         }
     }
 
-    fn check<T>(&self, data: &T) -> bool
+    fn contains<T>(&self, data: &T) -> bool
     where
         T: Hash,
     {

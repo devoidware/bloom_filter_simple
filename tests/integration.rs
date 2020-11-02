@@ -9,20 +9,20 @@ fn bloom_filter() {
     let mut bloom_filter = DefaultBloomFilter::new(3, 0.7);
 
     println!("Bloom_filter before insert: {:?}", bloom_filter);
-    println!("Probability: {}", bloom_filter.false_positive_probability());
+    println!("Probability: {}", bloom_filter.approximate_current_false_positive_probability());
 
     bloom_filter.insert(&5);
 
     println!("Bloom_filter after five: {:?}", bloom_filter);
-    println!("Probability: {}", bloom_filter.false_positive_probability());
+    println!("Probability: {}", bloom_filter.approximate_current_false_positive_probability());
 
     bloom_filter.insert(&3);
 
     println!("Bloom_filter after three: {:?}", bloom_filter);
-    println!("Probability: {}", bloom_filter.false_positive_probability());
+    println!("Probability: {}", bloom_filter.approximate_current_false_positive_probability());
 
-    assert!(bloom_filter.check(&3));
-    assert!(bloom_filter.check(&5));
+    assert!(bloom_filter.contains(&3));
+    assert!(bloom_filter.contains(&5));
 }
 
 #[test]
@@ -149,10 +149,10 @@ fn test_bloom_filter_probability<H1, H2>(
     for i in 0..desired_capacity {
         bloom_filter.insert(&i);
     }
-    assert!(bloom_filter.false_positive_probability() < allowed_probability);
+    assert!(bloom_filter.approximate_current_false_positive_probability() < allowed_probability);
 
     let true_checks = (0..(desired_capacity * 2))
-        .map(|i| bloom_filter.check(&i))
+        .map(|i| bloom_filter.contains(&i))
         .filter(|c| *c)
         .count();
 
@@ -162,11 +162,14 @@ fn test_bloom_filter_probability<H1, H2>(
         false_positive_probability
     );
     println!("Calculated hash count: {}", bloom_filter.hash_count());
-    println!("Calculated element count: {}", bloom_filter.element_count());
+    println!(
+        "Calculated element count: {}",
+        bloom_filter.approximate_element_count()
+    );
     println!("Positive check count: {}", true_checks);
     println!(
         "Calculated false positive probability: {} ({})",
-        bloom_filter.false_positive_probability(),
+        bloom_filter.approximate_current_false_positive_probability(),
         allowed_probability,
     );
     println!(
@@ -193,11 +196,11 @@ fn test_bloom_filter_probability_random<H1, H2>(
     for _ in 0..desired_capacity {
         bloom_filter.insert(&rng.sample(distribution));
     }
-    assert!(bloom_filter.false_positive_probability() < allowed_probability);
+    assert!(bloom_filter.approximate_current_false_positive_probability() < allowed_probability);
 
     let mut rng = rand::rngs::StdRng::from_seed(seed);
     let true_checks = (0..(desired_capacity * 2))
-        .map(|_| bloom_filter.check(&rng.sample(distribution)))
+        .map(|_| bloom_filter.contains(&rng.sample(distribution)))
         .filter(|c| *c)
         .count();
 
@@ -207,11 +210,14 @@ fn test_bloom_filter_probability_random<H1, H2>(
         false_positive_probability
     );
     println!("Calculated hash count: {}", bloom_filter.hash_count());
-    println!("Calculated element count: {}", bloom_filter.element_count());
+    println!(
+        "Calculated element count: {}",
+        bloom_filter.approximate_element_count()
+    );
     println!("Positive check count: {}", true_checks);
     println!(
         "Calculated false positive probability: {} ({})",
-        bloom_filter.false_positive_probability(),
+        bloom_filter.approximate_current_false_positive_probability(),
         allowed_probability,
     );
 
@@ -233,10 +239,10 @@ fn test_seeded_bloom_filter_probability(
     for i in 0..desired_capacity {
         bloom_filter.insert(&i);
     }
-    assert!(bloom_filter.false_positive_probability() < allowed_probability);
+    assert!(bloom_filter.approximate_current_false_positive_probability() < allowed_probability);
 
     let true_checks = (0..(desired_capacity * 2))
-        .map(|i| bloom_filter.check(&i))
+        .map(|i| bloom_filter.contains(&i))
         .filter(|c| *c)
         .count();
 
@@ -249,7 +255,7 @@ fn test_seeded_bloom_filter_probability(
     println!("Positive check count: {}", true_checks);
     println!(
         "Calculated false positive probability: {} ({})",
-        bloom_filter.false_positive_probability(),
+        bloom_filter.approximate_current_false_positive_probability(),
         allowed_probability,
     );
     println!(
@@ -271,12 +277,12 @@ fn test_bloom_filter_with_strings() {
     bloom_filter.insert(&"test");
     bloom_filter.insert(&"!");
 
-    assert_eq!(false, bloom_filter.check(&"Not"));
-    assert_eq!(true, bloom_filter.check(&"a"));
-    assert_eq!(false, bloom_filter.check(&"single"));
-    assert_eq!(false, bloom_filter.check(&"problem"));
-    assert_eq!(false, bloom_filter.check(&"found"));
-    assert_eq!(true, bloom_filter.check(&"!"));
+    assert_eq!(false, bloom_filter.contains(&"Not"));
+    assert_eq!(true, bloom_filter.contains(&"a"));
+    assert_eq!(false, bloom_filter.contains(&"single"));
+    assert_eq!(false, bloom_filter.contains(&"problem"));
+    assert_eq!(false, bloom_filter.contains(&"found"));
+    assert_eq!(true, bloom_filter.contains(&"!"));
 }
 
 #[test]
@@ -290,7 +296,7 @@ fn insert_and_check_its_there_with_millions_of_values() {
     }
 
     for i in 0..n_values {
-        assert!(bloom_filter.check(&i));
+        assert!(bloom_filter.contains(&i));
     }
 }
 
@@ -313,18 +319,18 @@ fn km_bloom_filter_union_test() {
     for _ in 0..(desired_capacity / 2) {
         bloom_filter_a.insert(&rng.sample(distribution));
     }
-    assert!(bloom_filter_a.false_positive_probability() < allowed_probability);
+    assert!(bloom_filter_a.approximate_current_false_positive_probability() < allowed_probability);
 
     for _ in 0..(desired_capacity / 2) {
         bloom_filter_b.insert(&rng.sample(distribution));
     }
-    assert!(bloom_filter_b.false_positive_probability() < allowed_probability);
+    assert!(bloom_filter_b.approximate_current_false_positive_probability() < allowed_probability);
 
     let bloom_filter = bloom_filter_a.union(&bloom_filter_b);
 
     let mut rng = StdRng::from_seed(seed);
     let true_checks = (0..(desired_capacity * 2))
-        .map(|_| bloom_filter.check(&rng.sample(distribution)))
+        .map(|_| bloom_filter.contains(&rng.sample(distribution)))
         .filter(|c| *c)
         .count();
 
@@ -334,11 +340,14 @@ fn km_bloom_filter_union_test() {
         false_positive_probability
     );
     println!("Calculated hash count: {}", bloom_filter.hash_count());
-    println!("Calculated element count: {}", bloom_filter.element_count());
+    println!(
+        "Calculated element count: {}",
+        bloom_filter.approximate_element_count()
+    );
     println!("Positive check count: {}", true_checks);
     println!(
         "Calculated false positive probability: {} ({})",
-        bloom_filter.false_positive_probability(),
+        bloom_filter.approximate_current_false_positive_probability(),
         allowed_probability,
     );
     println!(
@@ -389,7 +398,7 @@ fn km_bloom_filter_intersect_test() {
 
     let mut rng = StdRng::from_seed(seed);
     let true_checks = (0..(desired_capacity * 2))
-        .map(|_| bloom_filter.check(&rng.sample(distribution)))
+        .map(|_| bloom_filter.contains(&rng.sample(distribution)))
         .filter(|c| *c)
         .count();
 
@@ -399,11 +408,14 @@ fn km_bloom_filter_intersect_test() {
         false_positive_probability
     );
     println!("Calculated hash count: {}", bloom_filter.hash_count());
-    println!("Calculated element count: {}", bloom_filter.element_count());
+    println!(
+        "Calculated element count: {}",
+        bloom_filter.approximate_element_count()
+    );
     println!("Positive check count: {}", true_checks);
     println!(
         "Calculated false positive probability: {} ({})",
-        bloom_filter.false_positive_probability(),
+        bloom_filter.approximate_current_false_positive_probability(),
         allowed_probability,
     );
     println!(

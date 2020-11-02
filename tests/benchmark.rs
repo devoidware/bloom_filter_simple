@@ -66,7 +66,7 @@ fn checking_km(element_count: usize) {
     }
     let start = Instant::now();
     for i in 0..element_count {
-        bloom_filter.check(&i);
+        bloom_filter.contains(&i);
     }
     println!(
         "Checking {} elements in KMBloomFilter took {:?}, or {:?} per element",
@@ -93,7 +93,7 @@ fn checking_seeded(element_count: usize) {
     }
     let start = Instant::now();
     for i in 0..element_count {
-        bloom_filter.check(&i);
+        bloom_filter.contains(&i);
     }
     println!(
         "Checking {} elements in SeededBloomFilter took {:?}, or {:?} per element",

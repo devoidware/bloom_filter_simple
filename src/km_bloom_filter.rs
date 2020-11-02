@@ -4,7 +4,9 @@ use std::{
     marker::PhantomData,
 };
 
-use crate::{bitset::Bitset, BloomFilter};
+use crate::{
+    approximate_element_count, approximate_false_positive_probability, bitset::Bitset, BloomFilter,
+};
 
 /// Bloom filter implementation using the improvements described Kirsch and Mitzenmacher:
 ///
@@ -34,9 +36,9 @@ use crate::{bitset::Bitset, BloomFilter};
 ///     filter.insert(&10_000usize);
 ///
 ///     // You can check whether a value has been inserted into by the filter before.
-///     assert_eq!(false, filter.check(&3));
-///     assert_eq!(true, filter.check(&5));
-///     assert_eq!(true, filter.check(&"Some text"));
+///     assert_eq!(false, filter.contains(&3));
+///     assert_eq!(true, filter.contains(&5));
+///     assert_eq!(true, filter.contains(&"Some text"));
 /// }
 /// ```
 pub struct KMBloomFilter<H1, H2>
@@ -100,24 +102,22 @@ where
     }
 
     /// Approximate number of elements stored.
-    pub fn element_count(&self) -> f64 {
-        -(self.bits_per_hasher as f64)
-            * (1.0
-                - (self.bitset.count_ones() as f64)
-                    / ((self.number_of_hashers * self.bits_per_hasher) as f64))
-                .ln()
+    pub fn approximate_element_count(&self) -> f64 {
+        approximate_element_count(
+            self.number_of_hashers,
+            self.bits_per_hasher,
+            self.bitset.count_ones(),
+        )
     }
 
-    /// Return the current approximate false positive probability which depends on the current number of elements
-    /// in the filter.
-    pub fn false_positive_probability(&self) -> f64 {
-        (1.0 - std::f64::consts::E.powf(-self.element_count() / self.bits_per_hasher as f64))
-            .powf(self.number_of_hashers as f64)
-    }
-
-    /// Return the number of hash functions that are simulated by this instance.
-    pub fn hash_count(&self) -> usize {
-        self.number_of_hashers
+    /// Return the current approximate false positive probability which depends on the current
+    /// number of elements in the filter.
+    pub fn approximate_current_false_positive_probability(&self) -> f64 {
+        approximate_false_positive_probability(
+            self.number_of_hashers,
+            self.bits_per_hasher,
+            self.approximate_element_count(),
+        )
     }
 
     pub fn union(&self, other: &Self) -> Self {
@@ -140,9 +140,9 @@ where
         {
             panic!("unable to intersect k-m bloom filters with different configurations");
         }
-        let na = self.element_count();
-        let nb = other.element_count();
-        let naub = self.union(&other).element_count();
+        let na = self.approximate_element_count();
+        let nb = other.approximate_element_count();
+        let naub = self.union(&other).approximate_element_count();
         println!("element count: {}", na + nb - naub);
         Self {
             number_of_hashers: self.number_of_hashers,
@@ -200,7 +200,7 @@ where
         }
     }
 
-    fn check<T>(&self, data: &T) -> bool
+    fn contains<T>(&self, data: &T) -> bool
     where
         T: Hash,
     {
