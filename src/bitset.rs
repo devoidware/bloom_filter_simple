@@ -129,12 +129,6 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "at least one element")]
-    fn bitset_must_not_be_empty() {
-        Bitset::new(0);
-    }
-
-    #[test]
     fn set_first_bit_only() {
         let mut bitset = Bitset::new(3);
         bitset.set(0, true);

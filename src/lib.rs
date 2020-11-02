@@ -131,7 +131,6 @@
 //! }
 //! ```
 
-#![allow(dead_code)]
 use std::{collections::hash_map::DefaultHasher, hash::Hash};
 
 mod bitset;
@@ -157,9 +156,9 @@ pub use seeded_bloom_filter::SeededBloomFilter;
      bloom_filter.insert(&"Hello!");
      bloom_filter.insert(&34);
 
-     assert!(bloom_filter.check(&"Hello!"));
-     assert!(bloom_filter.check(&34));
-     assert_eq!(false, bloom_filter.check(&"Not in filter"));
+     assert!(bloom_filter.contains(&"Hello!"));
+     assert!(bloom_filter.contains(&34));
+     assert_eq!(false, bloom_filter.contains(&"Not in filter"));
  }
  ```
 */
@@ -186,7 +185,7 @@ pub trait BloomFilter {
     ///     bloom_filter.insert(&5);
     ///     bloom_filter.insert(&"Hello!");
     ///
-    ///     assert_eq!(true, bloom_filter.check(&"Hello!"));
+    ///     assert_eq!(true, bloom_filter.contains(&"Hello!"));
     /// }
     /// ```
     fn insert<T: Hash>(&mut self, data: &T);
@@ -215,9 +214,9 @@ pub trait BloomFilter {
     ///     let mut bloom_filter = DefaultBloomFilter::new(5, 0.001);
     ///     bloom_filter.insert(&"Hello!");
     ///     // This assert will *never* fail
-    ///     assert_eq!(true, bloom_filter.check(&"Hello!"));
+    ///     assert_eq!(true, bloom_filter.contains(&"Hello!"));
     ///     // This assert can fail with a probability of p(fp) < 0.001
-    ///     assert_eq!(false, bloom_filter.check(&"Goodbye!"));
+    ///     assert_eq!(false, bloom_filter.contains(&"Goodbye!"));
     /// }
     /// ```
     fn contains<T: Hash>(&self, data: &T) -> bool;
