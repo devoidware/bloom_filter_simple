@@ -1,46 +1,28 @@
 use std::{collections::hash_map::DefaultHasher, hash::Hasher};
 
 use bloom_filter::{BloomFilter, DefaultBloomFilter, KMBloomFilter, SeededBloomFilter};
-use bloomfilter::Bloom;
 use rand::{distributions::Uniform, prelude::StdRng, Rng, SeedableRng};
 use xxhash_rust::xxh3;
 
 #[test]
-fn bloomer() {
-    let mut bloomer = DefaultBloomFilter::new(3, 0.7);
+fn bloom_filter() {
+    let mut bloom_filter = DefaultBloomFilter::new(3, 0.7);
 
-    println!("Bloomer before insert: {:?}", bloomer);
-    println!("Probability: {}", bloomer.false_positive_probability());
+    println!("Bloom_filter before insert: {:?}", bloom_filter);
+    println!("Probability: {}", bloom_filter.false_positive_probability());
 
-    bloomer.insert(&5);
+    bloom_filter.insert(&5);
 
-    println!("Bloomer after five: {:?}", bloomer);
-    println!("Probability: {}", bloomer.false_positive_probability());
+    println!("Bloom_filter after five: {:?}", bloom_filter);
+    println!("Probability: {}", bloom_filter.false_positive_probability());
 
-    bloomer.insert(&3);
+    bloom_filter.insert(&3);
 
-    println!("Bloomer after three: {:?}", bloomer);
-    println!("Probability: {}", bloomer.false_positive_probability());
+    println!("Bloom_filter after three: {:?}", bloom_filter);
+    println!("Probability: {}", bloom_filter.false_positive_probability());
 
-    assert!(bloomer.check(&3));
-    assert!(bloomer.check(&5));
-}
-
-#[test]
-#[ignore]
-fn false_positive_probability_extern() {
-    let desired_capacity = 10_000_000;
-    let false_positive_probability = 0.001;
-    let relative_error_margin = 0.001;
-    let bloomer: Bloom<usize> =
-        Bloom::new_for_fp_rate(desired_capacity, false_positive_probability);
-
-    test_extern_bloomfilter(
-        desired_capacity,
-        false_positive_probability,
-        bloomer,
-        relative_error_margin,
-    );
+    assert!(bloom_filter.check(&3));
+    assert!(bloom_filter.check(&5));
 }
 
 #[test]
@@ -48,27 +30,28 @@ fn false_positive_probability_seeded() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
     let relative_error_margin = 0.06;
-    let bloomer = SeededBloomFilter::new(desired_capacity, false_positive_probability);
+    let bloom_filter = SeededBloomFilter::new(desired_capacity, false_positive_probability);
 
     test_seeded_bloom_filter_probability(
         desired_capacity,
         false_positive_probability,
-        bloomer,
+        bloom_filter,
         relative_error_margin,
     );
 }
+
 #[test]
 fn false_positive_probability_test_default_fnv() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
     let relative_error_margin = 0.034;
-    let bloomer: KMBloomFilter<DefaultHasher, fnv::FnvHasher> =
+    let bloom_filter: KMBloomFilter<DefaultHasher, fnv::FnvHasher> =
         KMBloomFilter::new(desired_capacity, false_positive_probability);
 
     test_bloom_filter_probability(
         desired_capacity,
         false_positive_probability,
-        bloomer,
+        bloom_filter,
         relative_error_margin,
     );
 }
@@ -78,13 +61,13 @@ fn false_positive_probability_default_ahash() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
     let relative_error_margin = 0.028;
-    let bloomer: KMBloomFilter<DefaultHasher, ahash::AHasher> =
+    let bloom_filter: KMBloomFilter<DefaultHasher, ahash::AHasher> =
         KMBloomFilter::new(desired_capacity, false_positive_probability);
 
     test_bloom_filter_probability(
         desired_capacity,
         false_positive_probability,
-        bloomer,
+        bloom_filter,
         relative_error_margin,
     );
 }
@@ -94,13 +77,13 @@ fn false_positive_probability_xx_default() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
     let relative_error_margin = 0.005;
-    let bloomer: KMBloomFilter<xxh3::Xxh3, DefaultHasher> =
+    let bloom_filter: KMBloomFilter<xxh3::Xxh3, DefaultHasher> =
         KMBloomFilter::new(desired_capacity, false_positive_probability);
 
     test_bloom_filter_probability(
         desired_capacity,
         false_positive_probability,
-        bloomer,
+        bloom_filter,
         relative_error_margin,
     );
 }
@@ -110,13 +93,13 @@ fn false_positive_probability_test_random_default_fnv() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
     let relative_error_margin = 0.04;
-    let bloomer: KMBloomFilter<DefaultHasher, fnv::FnvHasher> =
+    let bloom_filter: KMBloomFilter<DefaultHasher, fnv::FnvHasher> =
         KMBloomFilter::new(desired_capacity, false_positive_probability);
 
     test_bloom_filter_probability_random(
         desired_capacity,
         false_positive_probability,
-        bloomer,
+        bloom_filter,
         relative_error_margin,
     );
 }
@@ -126,13 +109,13 @@ fn false_positive_probability_random_default_ahash() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
     let relative_error_margin = 0.034;
-    let bloomer: KMBloomFilter<DefaultHasher, ahash::AHasher> =
+    let bloom_filter: KMBloomFilter<DefaultHasher, ahash::AHasher> =
         KMBloomFilter::new(desired_capacity, false_positive_probability);
 
     test_bloom_filter_probability_random(
         desired_capacity,
         false_positive_probability,
-        bloomer,
+        bloom_filter,
         relative_error_margin,
     );
 }
@@ -142,13 +125,13 @@ fn false_positive_probability_random_ahash_default() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
     let relative_error_margin = 0.00002;
-    let bloomer: KMBloomFilter<ahash::AHasher, DefaultHasher> =
+    let bloom_filter: KMBloomFilter<ahash::AHasher, DefaultHasher> =
         KMBloomFilter::new(desired_capacity, false_positive_probability);
 
     test_bloom_filter_probability_random(
         desired_capacity,
         false_positive_probability,
-        bloomer,
+        bloom_filter,
         relative_error_margin,
     );
 }
@@ -156,7 +139,7 @@ fn false_positive_probability_random_ahash_default() {
 fn test_bloom_filter_probability<H1, H2>(
     desired_capacity: usize,
     false_positive_probability: f64,
-    mut bloomer: KMBloomFilter<H1, H2>,
+    mut bloom_filter: KMBloomFilter<H1, H2>,
     relative_error_margin: f64,
 ) where
     H1: Hasher + Default,
@@ -164,12 +147,12 @@ fn test_bloom_filter_probability<H1, H2>(
 {
     let allowed_probability = false_positive_probability * (1.0 + relative_error_margin);
     for i in 0..desired_capacity {
-        bloomer.insert(&i);
+        bloom_filter.insert(&i);
     }
-    assert!(bloomer.false_positive_probability() < allowed_probability);
+    assert!(bloom_filter.false_positive_probability() < allowed_probability);
 
     let true_checks = (0..(desired_capacity * 2))
-        .map(|i| bloomer.check(&i))
+        .map(|i| bloom_filter.check(&i))
         .filter(|c| *c)
         .count();
 
@@ -178,12 +161,12 @@ fn test_bloom_filter_probability<H1, H2>(
         "Desired false positive probability: {}",
         false_positive_probability
     );
-    println!("Calculated hash count: {}", bloomer.hash_count());
-    println!("Calculated element count: {}", bloomer.element_count());
+    println!("Calculated hash count: {}", bloom_filter.hash_count());
+    println!("Calculated element count: {}", bloom_filter.element_count());
     println!("Positive check count: {}", true_checks);
     println!(
         "Calculated false positive probability: {} ({})",
-        bloomer.false_positive_probability(),
+        bloom_filter.false_positive_probability(),
         allowed_probability,
     );
     println!(
@@ -197,7 +180,7 @@ fn test_bloom_filter_probability<H1, H2>(
 fn test_bloom_filter_probability_random<H1, H2>(
     desired_capacity: usize,
     false_positive_probability: f64,
-    mut bloomer: KMBloomFilter<H1, H2>,
+    mut bloom_filter: KMBloomFilter<H1, H2>,
     relative_error_margin: f64,
 ) where
     H1: Hasher + Default,
@@ -208,13 +191,13 @@ fn test_bloom_filter_probability_random<H1, H2>(
     let distribution = Uniform::new(u64::MIN, u64::MAX);
     let allowed_probability = false_positive_probability * (1.0 + relative_error_margin);
     for _ in 0..desired_capacity {
-        bloomer.insert(&rng.sample(distribution));
+        bloom_filter.insert(&rng.sample(distribution));
     }
-    assert!(bloomer.false_positive_probability() < allowed_probability);
+    assert!(bloom_filter.false_positive_probability() < allowed_probability);
 
     let mut rng = rand::rngs::StdRng::from_seed(seed);
     let true_checks = (0..(desired_capacity * 2))
-        .map(|_| bloomer.check(&rng.sample(distribution)))
+        .map(|_| bloom_filter.check(&rng.sample(distribution)))
         .filter(|c| *c)
         .count();
 
@@ -223,44 +206,15 @@ fn test_bloom_filter_probability_random<H1, H2>(
         "Desired false positive probability: {}",
         false_positive_probability
     );
-    println!("Calculated hash count: {}", bloomer.hash_count());
-    println!("Calculated element count: {}", bloomer.element_count());
+    println!("Calculated hash count: {}", bloom_filter.hash_count());
+    println!("Calculated element count: {}", bloom_filter.element_count());
     println!("Positive check count: {}", true_checks);
     println!(
         "Calculated false positive probability: {} ({})",
-        bloomer.false_positive_probability(),
+        bloom_filter.false_positive_probability(),
         allowed_probability,
     );
-    println!(
-        "Tested false positive probability: {} ({})",
-        (true_checks as f64 - desired_capacity as f64) / desired_capacity as f64,
-        allowed_probability
-    );
-    assert!(true_checks < (desired_capacity as f64 * (1.0 + allowed_probability)) as usize);
-}
 
-fn test_extern_bloomfilter(
-    desired_capacity: usize,
-    false_positive_probability: f64,
-    mut bloomer: Bloom<usize>,
-    relative_error_margin: f64,
-) {
-    let allowed_probability = false_positive_probability * (1.0 + relative_error_margin);
-    for i in 0..desired_capacity {
-        bloomer.set(&i);
-    }
-
-    let true_checks = (0..(desired_capacity * 2))
-        .map(|i| bloomer.check(&i))
-        .filter(|c| *c)
-        .count();
-
-    println!("Desired capacity: {}", desired_capacity);
-    println!(
-        "Desired false positive probability: {}",
-        false_positive_probability
-    );
-    println!("Positive check count: {}", true_checks);
     println!(
         "Tested false positive probability: {} ({})",
         (true_checks as f64 - desired_capacity as f64) / desired_capacity as f64,
@@ -272,17 +226,17 @@ fn test_extern_bloomfilter(
 fn test_seeded_bloom_filter_probability(
     desired_capacity: usize,
     false_positive_probability: f64,
-    mut bloomer: SeededBloomFilter,
+    mut bloom_filter: SeededBloomFilter,
     relative_error_margin: f64,
 ) {
     let allowed_probability = false_positive_probability * (1.0 + relative_error_margin);
     for i in 0..desired_capacity {
-        bloomer.insert(&i);
+        bloom_filter.insert(&i);
     }
-    assert!(bloomer.false_positive_probability() < allowed_probability);
+    assert!(bloom_filter.false_positive_probability() < allowed_probability);
 
     let true_checks = (0..(desired_capacity * 2))
-        .map(|i| bloomer.check(&i))
+        .map(|i| bloom_filter.check(&i))
         .filter(|c| *c)
         .count();
 
@@ -291,11 +245,11 @@ fn test_seeded_bloom_filter_probability(
         "Desired false positive probability: {}",
         false_positive_probability
     );
-    println!("Calculated hash count: {}", bloomer.hash_count());
+    println!("Calculated hash count: {}", bloom_filter.hash_count());
     println!("Positive check count: {}", true_checks);
     println!(
         "Calculated false positive probability: {} ({})",
-        bloomer.false_positive_probability(),
+        bloom_filter.false_positive_probability(),
         allowed_probability,
     );
     println!(
@@ -308,35 +262,35 @@ fn test_seeded_bloom_filter_probability(
 
 #[test]
 fn test_bloom_filter_with_strings() {
-    let mut bloomer = DefaultBloomFilter::new(3, 0.001);
+    let mut bloom_filter = DefaultBloomFilter::new(3, 0.001);
 
-    bloomer.insert(&"This");
-    bloomer.insert(&"is");
-    bloomer.insert(&"a");
-    bloomer.insert(&"simple");
-    bloomer.insert(&"test");
-    bloomer.insert(&"!");
+    bloom_filter.insert(&"This");
+    bloom_filter.insert(&"is");
+    bloom_filter.insert(&"a");
+    bloom_filter.insert(&"simple");
+    bloom_filter.insert(&"test");
+    bloom_filter.insert(&"!");
 
-    assert_eq!(false, bloomer.check(&"Not"));
-    assert_eq!(true, bloomer.check(&"a"));
-    assert_eq!(false, bloomer.check(&"single"));
-    assert_eq!(false, bloomer.check(&"problem"));
-    assert_eq!(false, bloomer.check(&"found"));
-    assert_eq!(true, bloomer.check(&"!"));
+    assert_eq!(false, bloom_filter.check(&"Not"));
+    assert_eq!(true, bloom_filter.check(&"a"));
+    assert_eq!(false, bloom_filter.check(&"single"));
+    assert_eq!(false, bloom_filter.check(&"problem"));
+    assert_eq!(false, bloom_filter.check(&"found"));
+    assert_eq!(true, bloom_filter.check(&"!"));
 }
 
 #[test]
 #[ignore]
 fn insert_and_check_its_there_with_millions_of_values() {
     let n_values = 10_000_000;
-    let mut bloomer = DefaultBloomFilter::new(n_values, 0.001);
+    let mut bloom_filter = DefaultBloomFilter::new(n_values, 0.001);
 
     for i in 0..n_values {
-        bloomer.insert(&i);
+        bloom_filter.insert(&i);
     }
 
     for i in 0..n_values {
-        assert!(bloomer.check(&i));
+        assert!(bloom_filter.check(&i));
     }
 }
 
@@ -345,9 +299,9 @@ fn km_bloom_filter_union_test() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
     let relative_error_margin = 0.00002;
-    let mut bloomer_a: KMBloomFilter<ahash::AHasher, DefaultHasher> =
+    let mut bloom_filter_a: KMBloomFilter<ahash::AHasher, DefaultHasher> =
         KMBloomFilter::new(desired_capacity, false_positive_probability);
-    let mut bloomer_b: KMBloomFilter<ahash::AHasher, DefaultHasher> =
+    let mut bloom_filter_b: KMBloomFilter<ahash::AHasher, DefaultHasher> =
         KMBloomFilter::new(desired_capacity, false_positive_probability);
 
     let seed = [0xb7u8; 32];
@@ -357,20 +311,20 @@ fn km_bloom_filter_union_test() {
     let allowed_probability = false_positive_probability * (1.0 + relative_error_margin);
 
     for _ in 0..(desired_capacity / 2) {
-        bloomer_a.insert(&rng.sample(distribution));
+        bloom_filter_a.insert(&rng.sample(distribution));
     }
-    assert!(bloomer_a.false_positive_probability() < allowed_probability);
+    assert!(bloom_filter_a.false_positive_probability() < allowed_probability);
 
     for _ in 0..(desired_capacity / 2) {
-        bloomer_b.insert(&rng.sample(distribution));
+        bloom_filter_b.insert(&rng.sample(distribution));
     }
-    assert!(bloomer_b.false_positive_probability() < allowed_probability);
+    assert!(bloom_filter_b.false_positive_probability() < allowed_probability);
 
-    let bloomer = bloomer_a.union(&bloomer_b);
+    let bloom_filter = bloom_filter_a.union(&bloom_filter_b);
 
     let mut rng = StdRng::from_seed(seed);
     let true_checks = (0..(desired_capacity * 2))
-        .map(|_| bloomer.check(&rng.sample(distribution)))
+        .map(|_| bloom_filter.check(&rng.sample(distribution)))
         .filter(|c| *c)
         .count();
 
@@ -379,12 +333,12 @@ fn km_bloom_filter_union_test() {
         "Desired false positive probability: {}",
         false_positive_probability
     );
-    println!("Calculated hash count: {}", bloomer.hash_count());
-    println!("Calculated element count: {}", bloomer.element_count());
+    println!("Calculated hash count: {}", bloom_filter.hash_count());
+    println!("Calculated element count: {}", bloom_filter.element_count());
     println!("Positive check count: {}", true_checks);
     println!(
         "Calculated false positive probability: {} ({})",
-        bloomer.false_positive_probability(),
+        bloom_filter.false_positive_probability(),
         allowed_probability,
     );
     println!(
@@ -400,11 +354,11 @@ fn km_bloom_filter_intersect_test() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.0001;
     let relative_error_margin = 0.00002;
-    let mut bloomer_a: KMBloomFilter<ahash::AHasher, DefaultHasher> = KMBloomFilter::new(
+    let mut bloom_filter_a: KMBloomFilter<ahash::AHasher, DefaultHasher> = KMBloomFilter::new(
         (desired_capacity as f64 * 1.5) as usize,
         false_positive_probability,
     );
-    let mut bloomer_b: KMBloomFilter<ahash::AHasher, DefaultHasher> = KMBloomFilter::new(
+    let mut bloom_filter_b: KMBloomFilter<ahash::AHasher, DefaultHasher> = KMBloomFilter::new(
         (desired_capacity as f64 * 1.5) as usize,
         false_positive_probability,
     );
@@ -417,25 +371,25 @@ fn km_bloom_filter_intersect_test() {
 
     for _ in 0..desired_capacity {
         let value = rng.sample(distribution);
-        bloomer_a.insert(&value);
-        bloomer_b.insert(&value);
+        bloom_filter_a.insert(&value);
+        bloom_filter_b.insert(&value);
     }
 
     for _ in 0..(desired_capacity / 2) {
-        bloomer_a.insert(&rng.sample(distribution));
+        bloom_filter_a.insert(&rng.sample(distribution));
     }
-    // assert!(bloomer_a.false_positive_probability() < allowed_probability);
+    // assert!(bloom_filter_a.false_positive_probability() < allowed_probability);
 
     for _ in 0..(desired_capacity / 2) {
-        bloomer_b.insert(&rng.sample(distribution));
+        bloom_filter_b.insert(&rng.sample(distribution));
     }
-    // assert!(bloomer_b.false_positive_probability() < allowed_probability);
+    // assert!(bloom_filter_b.false_positive_probability() < allowed_probability);
 
-    let bloomer = bloomer_a.intersect(&bloomer_b);
+    let bloom_filter = bloom_filter_a.intersect(&bloom_filter_b);
 
     let mut rng = StdRng::from_seed(seed);
     let true_checks = (0..(desired_capacity * 2))
-        .map(|_| bloomer.check(&rng.sample(distribution)))
+        .map(|_| bloom_filter.check(&rng.sample(distribution)))
         .filter(|c| *c)
         .count();
 
@@ -444,12 +398,12 @@ fn km_bloom_filter_intersect_test() {
         "Desired false positive probability: {}",
         false_positive_probability
     );
-    println!("Calculated hash count: {}", bloomer.hash_count());
-    println!("Calculated element count: {}", bloomer.element_count());
+    println!("Calculated hash count: {}", bloom_filter.hash_count());
+    println!("Calculated element count: {}", bloom_filter.element_count());
     println!("Positive check count: {}", true_checks);
     println!(
         "Calculated false positive probability: {} ({})",
-        bloomer.false_positive_probability(),
+        bloom_filter.false_positive_probability(),
         allowed_probability,
     );
     println!(

@@ -12,10 +12,10 @@ fn measure_inserting_km() {
 }
 
 fn inserting_km(element_count: usize) {
-    let mut bloomer = DefaultBloomFilter::new(element_count, 0.001);
+    let mut bloom_filter = DefaultBloomFilter::new(element_count, 0.001);
     let start = Instant::now();
     for i in 0..element_count {
-        bloomer.insert(&i);
+        bloom_filter.insert(&i);
     }
     println!(
         "Inserting {} elements into KMBloomFilter took {:?}, or {:?} per element",
@@ -36,10 +36,10 @@ fn measure_inserting_seeded() {
 }
 
 fn inserting_seeded(element_count: usize) {
-    let mut bloomer = SeededBloomFilter::new(element_count, 0.001);
+    let mut bloom_filter = SeededBloomFilter::new(element_count, 0.001);
     let start = Instant::now();
     for i in 0..element_count {
-        bloomer.insert(&i);
+        bloom_filter.insert(&i);
     }
     println!(
         "Inserting {} elements into SeededBloomFilter took {:?}, or {:?} per element",
@@ -60,13 +60,13 @@ fn measure_checking_km() {
 }
 
 fn checking_km(element_count: usize) {
-    let mut bloomer = DefaultBloomFilter::new(element_count, 0.001);
+    let mut bloom_filter = DefaultBloomFilter::new(element_count, 0.001);
     for i in 0..element_count {
-        bloomer.insert(&i);
+        bloom_filter.insert(&i);
     }
     let start = Instant::now();
     for i in 0..element_count {
-        bloomer.check(&i);
+        bloom_filter.check(&i);
     }
     println!(
         "Checking {} elements in KMBloomFilter took {:?}, or {:?} per element",
@@ -87,13 +87,13 @@ fn measure_checking_seeded() {
 }
 
 fn checking_seeded(element_count: usize) {
-    let mut bloomer = SeededBloomFilter::new(element_count, 0.001);
+    let mut bloom_filter = SeededBloomFilter::new(element_count, 0.001);
     for i in 0..element_count {
-        bloomer.insert(&i);
+        bloom_filter.insert(&i);
     }
     let start = Instant::now();
     for i in 0..element_count {
-        bloomer.check(&i);
+        bloom_filter.check(&i);
     }
     println!(
         "Checking {} elements in SeededBloomFilter took {:?}, or {:?} per element",

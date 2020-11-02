@@ -14,8 +14,8 @@
 //! larger the probability of false positives.
 //!
 //! # Bloom Filter Implementations
-//! The library offers two basic types of bloom filter implementations. 
-//! 
+//! The library offers two basic types of bloom filter implementations.
+//!
 //! ## Kirsch-Mitzenmacher Bloom Filter (KMBloomFilter)
 //! This type of bloom filter uses two hashers to simulate an arbitrary number of additional hash functions.
 //!
@@ -27,12 +27,12 @@
 //! simulated as *g_i(x) = h_1(x) + i* \* *h_2(x)*.
 //!
 //! ## Seeded Bloom Filter (SeededBloomFilter)
-//! A bloom filter that uses a single Hasher that can be seeded to simulate an arbitrary number of hash functions. 
+//! A bloom filter that uses a single Hasher that can be seeded to simulate an arbitrary number of hash functions.
 //! Internally, the implementation uses ahash::AHasher.
 //!
 //! # Examples
 //! In the following, you can find simple examples of how to initialize and use the different bloom filter types.
-//! 
+//!
 //! ## Default Bloom Filter
 //! The crate offers a default type for a KMBloomFilter that uses *ahash::AHasher* and Rust's
 //! *std::collections::hash_map::DefaultHasher* to simulate more hash functions. When comparing
