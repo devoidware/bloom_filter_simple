@@ -1,9 +1,9 @@
+# Overview
 **bloom_filter_simple** is a library that offers different implementations of a simple bloom filter based
 on the initial ideas presented by Burton Howard Bloom:
 > Burton H. Bloom. 1970. Space/time trade-offs in hash coding with allowable errors. Commun.
 ACM 13, 7 (July 1970), 422–426. DOI:https://doi.org/10.1145/362686.362692
 
-# Overview
 Basic description from [Wikipedia](https://en.wikipedia.org/wiki/Bloom_filter):
 
 > A Bloom filter is a space-efficient probabilistic data structure, conceived by Burton Howard
