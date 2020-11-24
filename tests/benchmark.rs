@@ -1,4 +1,4 @@
-use bloom_filter::{BloomFilter, DefaultBloomFilter, SeededBloomFilter};
+use bloom_filter_simple::{BloomFilter, DefaultBloomFilter, SeededBloomFilter};
 use std::time::Instant;
 
 #[test]

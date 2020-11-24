@@ -9,7 +9,7 @@ use crate::{
     optimal_bit_count, optimal_number_of_hashers, BloomFilter,
 };
 
-/// Bloom filter implementation using the improvements described Kirsch and Mitzenmacher:
+/// Bloom filter implementation using the improvements described by Kirsch and Mitzenmacher:
 ///
 /// > Kirsch A., Mitzenmacher M. (2006) Less Hashing, Same Performance: Building a Better Bloom Filter.
 /// In: Azar Y., Erlebach T. (eds) Algorithms – ESA 2006. ESA 2006. Lecture Notes in Computer Science, vol 4168.
@@ -17,7 +17,7 @@ use crate::{
 ///
 /// # Examples
 /// ```
-/// use bloom_filter::{BloomFilter,KMBloomFilter};
+/// use bloom_filter_simple::{BloomFilter,KMBloomFilter};
 /// use ahash::AHasher;
 /// use std::collections::hash_map::DefaultHasher;
 ///
@@ -69,7 +69,7 @@ where
     /// ***You have to use two different hash functions for *H1* and *H2*!***
     /// # Examples
     /// ```
-    /// use bloom_filter::{BloomFilter,KMBloomFilter};
+    /// use bloom_filter_simple::{BloomFilter,KMBloomFilter};
     /// use ahash::AHasher;
     /// use std::collections::hash_map::DefaultHasher;
     ///

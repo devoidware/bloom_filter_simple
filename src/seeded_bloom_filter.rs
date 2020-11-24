@@ -26,7 +26,7 @@ impl SeededBloomFilter {
     ///
     /// # Examples
     /// ```
-    /// use bloom_filter::{BloomFilter,SeededBloomFilter};
+    /// use bloom_filter_simple::{BloomFilter,SeededBloomFilter};
     ///
     /// fn main() {
     ///     // We plan on storing at most 10 elements

@@ -1,5 +1,5 @@
-//! bloom-filter is a library that offers different implementations of a simple bloom filter based
-//! on the initial ideas of presented by Burton Howard Bloom:
+//! bloom-filter-simple is a library that offers different implementations of a simple bloom filter based
+//! on the initial ideas presented by Burton Howard Bloom:
 //! > Burton H. Bloom. 1970. Space/time trade-offs in hash coding with allowable errors. Commun.
 //! ACM 13, 7 (July 1970), 422–426. DOI:https://doi.org/10.1145/362686.362692
 //!
@@ -41,7 +41,7 @@
 //!
 //! We recommend using DefaultBloomFilter for quickly getting started.
 //! ```
-//! use bloom_filter::{BloomFilter,DefaultBloomFilter};
+//! use bloom_filter_simple::{BloomFilter,DefaultBloomFilter};
 //!
 //! fn main() {
 //!     // We plan on storing at most 10 elements
@@ -71,7 +71,7 @@
 //! ## KMBloomFilter
 //! Initialization and application of a KMBloomFilter.
 //! ```
-//! use bloom_filter::{BloomFilter,KMBloomFilter};
+//! use bloom_filter_simple::{BloomFilter,KMBloomFilter};
 //! use ahash::AHasher;
 //! use std::collections::hash_map::DefaultHasher;
 //!
@@ -106,7 +106,7 @@
 //! ## SeededBloomFilter
 //! Initialization and application of a SeededBloomFilter.
 //! ```
-//! use bloom_filter::{BloomFilter,SeededBloomFilter};
+//! use bloom_filter_simple::{BloomFilter,SeededBloomFilter};
 //!
 //! fn main() {
 //!     // We plan on storing at most 10 elements
@@ -146,7 +146,7 @@ pub use seeded_bloom_filter::SeededBloomFilter;
  DefaultBloomFilter is implemented as a type definition `type DefaultBloomFilter = KMBloomFilter<ahash::AHasher, DefaultHasher>;`
  # Examples
  ```
- use bloom_filter::{DefaultBloomFilter,BloomFilter};
+ use bloom_filter_simple::{DefaultBloomFilter,BloomFilter};
 
  fn simple_bloom_filter_test() {
      let desired_capacity = 1_000_000;
@@ -177,7 +177,7 @@ pub trait BloomFilter {
     /// # Examples
     /// How *insert* of a type implementing BloomFilter might be used:
     /// ```
-    /// use bloom_filter::{BloomFilter, DefaultBloomFilter};
+    /// use bloom_filter_simple::{BloomFilter, DefaultBloomFilter};
     ///
     /// fn bloom_filter_insert() {
     ///     let mut bloom_filter = DefaultBloomFilter::new(5, 0.001);
@@ -209,7 +209,7 @@ pub trait BloomFilter {
     /// # Examples
     /// How contains of a type implementing BloomFilter might be used:
     /// ```
-    /// use bloom_filter::{BloomFilter, DefaultBloomFilter};
+    /// use bloom_filter_simple::{BloomFilter, DefaultBloomFilter};
     /// fn bloom_filter_insert() {
     ///     let mut bloom_filter = DefaultBloomFilter::new(5, 0.001);
     ///     bloom_filter.insert(&"Hello!");

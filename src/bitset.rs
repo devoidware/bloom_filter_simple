@@ -58,6 +58,7 @@ impl Bitset {
         self.bytes.iter().map(|b| b.count_ones() as usize).sum()
     }
 
+    #[allow(dead_code)]
     pub fn count_zeros(&self) -> usize {
         self.len() - self.count_ones()
     }
