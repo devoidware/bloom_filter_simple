@@ -2,7 +2,7 @@
 //! structure for filtering elements. The data structure is based on the ideas presented by Burton
 //! Howard Bloom and is therefore known as bloom filter:
 //! > Burton H. Bloom. 1970. Space/time trade-offs in hash coding with allowable errors. Commun.
-//! ACM 13, 7 (July 1970), 422–426. DOI:https://doi.org/10.1145/362686.362692
+//! ACM 13, 7 (July 1970), 422–426. DOI: [https://doi.org/10.1145/362686.362692](https://doi.org/10.1145/362686.362692)
 //!
 //! # Overview
 //! Basic description taken from [Wikipedia](https://en.wikipedia.org/wiki/Bloom_filter):
@@ -235,13 +235,17 @@ pub trait BloomFilter {
 }
 
 /// Calculate the optimal bit count to satisfy the desired constraints.
+/// Formula taken from Sagi Kedmi:
+/// > S. Kedmi, ["Bloom Filters for the Perplexed"](https://sagi.io/bloom-filters-for-the-perplexed/), July 2017 [Accessed: 02.12.2020]
 fn optimal_bit_count(desired_capacity: usize, desired_false_positive_probability: f64) -> usize {
-    ((desired_capacity as f64 * desired_false_positive_probability.ln())
-        / (1.0 / 2.0f64.powf(2.0f64.ln())).ln())
+    (-(desired_capacity as f64 * desired_false_positive_probability.ln())
+        / (2.0f64.ln().powi(2)))
     .ceil() as usize
 }
 
 /// Calculate the optimal number of hashers to satisfy the desired constraints.
+/// Formula taken from Sagi Kedmi:
+/// > S. Kedmi, ["Bloom Filters for the Perplexed"](https://sagi.io/bloom-filters-for-the-perplexed/), July 2017 [Accessed: 02.12.2020]
 fn optimal_number_of_hashers(desired_capacity: usize, bit_count: usize) -> usize {
     ((bit_count as f64 / desired_capacity as f64) * 2.0f64.ln()).round() as usize
 }
@@ -258,6 +262,8 @@ fn approximate_element_count(
 
 /// Return the current approximate false positive probability which depends on the current
 /// number of elements in the filter.
+/// Formula taken from Sagi Kedmi:
+/// > S. Kedmi, ["Bloom Filters for the Perplexed"](https://sagi.io/bloom-filters-for-the-perplexed/), July 2017 [Accessed: 02.12.2020]
 fn approximate_false_positive_probability(
     number_of_hashers: usize,
     bits_per_hasher: usize,
