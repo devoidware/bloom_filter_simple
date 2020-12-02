@@ -53,10 +53,10 @@
 //!     // We plan on storing at most 10 elements
 //!     let desired_capacity = 10;
 //!     // The chance of a false positive increases with each inserted element. This parameter
-//!     // specifies that it should be less than 0.0001 (0.01%) when the desired capacity has
+//!     // specifies that it should be less than 0.01% (0.0001) when the desired capacity has
 //!     // been reached.
 //!     // In other words, the chance that the bloom filter returns true when checking whether a
-//!     // novel element has been inserted before is less than 0.0001 (0.01%).
+//!     // novel element has been inserted before is less than 0.01% (0.0001).
 //!     let desired_fp_probability = 0.0001;
 //!
 //!     let mut filter = DefaultBloomFilter::new(desired_capacity, desired_fp_probability);
@@ -84,7 +84,7 @@
 //! fn main() {
 //!     // We plan on storing at most 10 elements
 //!     let desired_capacity = 10;
-//!     // We want to assure that the chance of a false positive is less than 0.0001 (0.01%) for up to
+//!     // We want to assure that the chance of a false positive is less than 0.01% (0.0001) for up to
 //!     // desired_capacity elements.
 //!     let desired_fp_probability = 0.0001;
 //!
