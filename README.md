@@ -1,4 +1,4 @@
-# Overview
+# `bloom_filter_simple`
 
 [![Crate](https://img.shields.io/crates/v/bloom_filter_simple.svg)](https://crates.io/crates/bloom_filter_simple)
 [![API](https://docs.rs/bloom_filter_simple/badge.svg)](https://docs.rs/bloom_filter_simple)
@@ -17,13 +17,15 @@ matches are possible, but false negatives are not – in other words, a query re
 (though this can be addressed with the counting Bloom filter variant); the more items added, the
 larger the probability of false positives.
 
-# Bloom Filter Implementations
+## Bloom Filter Implementations
 
 The library offers two basic types of bloom filter implementations: `KMBloomFilter` and `SeededBloomFilter`. The former uses two hash functions while the latter uses only one hash function but different seeds to generate different hashes.
 
-# Examples
+## Examples
 
-## `DefaultBloomFilter`
+In the following, you can find simple examples of how to initialize and use the different bloom filter types.
+
+### `DefaultBloomFilter`
 
 The `DefaultBloomFilter` is there to get started easily. It is a pre-configured `KMBloomFilter` that uses two hash functions which proved sufficient for our tests.
 
@@ -56,7 +58,7 @@ fn main() {
 }
 ```
 
-## `KMBloomFilter`
+### `KMBloomFilter`
 
 The `KMBloomFilter` lets you choose which hash functions should be used.
 
@@ -64,7 +66,7 @@ The `KMBloomFilter` lets you choose which hash functions should be used.
 KMBloomFilter<AHasher, DefaultHasher> = KMBloomFilter::new(desired_capacity, desired_fp_probability);
 ```
 
-## `SeededBloomFilter`
+### `SeededBloomFilter`
 
 The `SeededBloomFilter` requires no configuration as it uses only one specific hash function which is seeded automatically.
 
