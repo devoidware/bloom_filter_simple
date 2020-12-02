@@ -250,9 +250,9 @@ fn approximate_element_count(
 /// number of elements in the filter.
 fn approximate_false_positive_probability(
     number_of_hashers: usize,
-    bits_per_hahser: usize,
+    bits_per_hasher: usize,
     element_count: f64,
 ) -> f64 {
-    (1.0 - std::f64::consts::E.powf(-element_count / bits_per_hahser as f64))
+    (1.0 - std::f64::consts::E.powf(-element_count / bits_per_hasher as f64))
         .powf(number_of_hashers as f64)
 }
