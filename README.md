@@ -1,5 +1,8 @@
 # Overview
 
+[![Crate](https://img.shields.io/crates/v/bloom_filter_simple.svg)](https://crates.io/crates/bloom_filter_simple)
+[![API](https://docs.rs/bloom_filter_simple/badge.svg)](https://docs.rs/bloom_filter_simple)
+
 `bloom_filter_simple` is a library that offers different implementations of a simple bloom filter based
 on the initial ideas presented by Burton Howard Bloom:
 > Burton H. Bloom. 1970. Space/time trade-offs in hash coding with allowable errors. Commun.
