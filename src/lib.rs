@@ -50,19 +50,20 @@
 //! use bloom_filter_simple::{BloomFilter,DefaultBloomFilter};
 //!
 //! fn main() {
-//!     // We plan on storing at most 10 elements
-//!     let desired_capacity = 10;
-//!     // The chance of a false positive increases with each inserted element. This parameter
-//!     // specifies that it should be less than 0.01% (0.0001) when the desired capacity has
-//!     // been reached.
-//!     // In other words, the chance that the bloom filter returns true when checking whether a
-//!     // novel element has been inserted before is less than 0.01% (0.0001).
+//!     // We plan on storing at most 10,000 elements
+//!     let desired_capacity = 10_000;
+//!     // The chance of a false positive increases with each inserted element.
+//!     // This parameter specifies that the chance should be less than 0.01% (0.0001)
+//!     // when the desired capacity has been reached. In other words, the chance
+//!     // that the bloom filter returns true when checking whether a novel element
+//!     // has been inserted before is less than 0.01% (0.0001).
 //!     let desired_fp_probability = 0.0001;
 //!
 //!     let mut filter = DefaultBloomFilter::new(desired_capacity, desired_fp_probability);
 //!
-//!     // You can insert any type implementing the Hash trait. The bloom filter does not store the
-//!     // inserted elements but only their hashes. Hence, there is no transfer of ownership required.
+//!     // You can insert any type implementing the Hash trait. The bloom filter does
+//!     // not store the inserted elements but only their hashes. Hence, there is no
+//!     // transfer of ownership required.
 //!     filter.insert(&5i32);
 //!     filter.insert(&"Some text");
 //!     filter.insert(&10_000usize);
@@ -82,22 +83,26 @@
 //! use std::collections::hash_map::DefaultHasher;
 //!
 //! fn main() {
-//!     // We plan on storing at most 10 elements
-//!     let desired_capacity = 10;
-//!     // We want to assure that the chance of a false positive is less than 0.01% (0.0001) for up to
-//!     // desired_capacity elements.
+//!     // We plan on storing at most 10,000 elements
+//!     let desired_capacity = 10_000;
+//!     // We want to assure that the chance of a false positive is less than 0.01% (0.0001)
+//!     // for up to desired_capacity elements.
 //!     let desired_fp_probability = 0.0001;
 //!
-//!     // We initialize a new KMBloomFilter by specifying the desired Hashers as type parameters.
-//!     // It is possible to use any type that implements Hasher + Default.
-//!     // Default is required to receive a new instance of a hasher after a value was hashed, because
-//!     // the Hasher trait does not provide an interface for resetting a hasher implementing it.
-//!     // This is required to receive the same hash value when inserting or checking the same element
-//!     // multiple times.
-//!     let mut filter: KMBloomFilter<AHasher, DefaultHasher> = KMBloomFilter::new(desired_capacity, desired_fp_probability);
+//!     // We initialize a new KMBloomFilter by specifying the desired Hashers as type
+//!     // parameters. It is possible to use any type that implements Hasher + Default.
+//!     // Default is required to receive a new instance of a hasher after a value was
+//!     // hashed, because the Hasher trait does not provide an interface for resetting
+//!     // a hasher implementing it. This is required to receive the same hash value
+//!     // when inserting or checking the same element multiple times.
+//!     let mut filter: KMBloomFilter<AHasher, DefaultHasher> = KMBloomFilter::new(
+//!         desired_capacity,
+//!         desired_fp_probability
+//!     );
 //!
-//!     // You can insert any type implementing the Hash trait. The bloom filter does not store the
-//!     // inserted elements but only their hashes. Hence, there is no transfer of ownership required.
+//!     // You can insert any type implementing the Hash trait. The bloom filter does not
+//!     // store the inserted elements but only their hashes. Hence, there is no transfer
+//!     // of ownership required.
 //!     filter.insert(&5i32);
 //!     filter.insert(&"Some text");
 //!     filter.insert(&10_000usize);
@@ -115,17 +120,18 @@
 //! use bloom_filter_simple::{BloomFilter,SeededBloomFilter};
 //!
 //! fn main() {
-//!     // We plan on storing at most 10 elements
-//!     let desired_capacity = 10;
-//!     // We want to assure that the chance of a false positive is less than 0.0001 for up to
-//!     // desired_capacity elements.
+//!     // We plan on storing at most 10,000 elements
+//!     let desired_capacity = 10_000;
+//!     // We want to assure that the chance of a false positive is less than 0.0001
+//!     // for up to desired_capacity elements.
 //!     let desired_fp_probability = 0.0001;
 //!
 //!     // A SeededBloomFilter uses a single seeded ahash::AHasher internally.
 //!     let mut filter = SeededBloomFilter::new(desired_capacity, desired_fp_probability);
 //!
-//!     // You can insert any type implementing the Hash trait. The bloom filter does not store the
-//!     // inserted elements but only their hashes. Hence, there is no transfer of ownership required.
+//!     // You can insert any type implementing the Hash trait. The bloom filter does
+//!     // not store the inserted elements but only their hashes. Hence, there is no
+//!     // transfer of ownership required.
 //!     filter.insert(&5i32);
 //!     filter.insert(&"Some text");
 //!     filter.insert(&10_000usize);
