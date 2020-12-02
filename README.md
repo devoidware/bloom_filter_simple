@@ -73,3 +73,5 @@ The `SeededBloomFilter` requires no configuration as it uses only one specific h
 ```rust
 SeededBloomFilter::new(desired_capacity, desired_fp_probability);
 ```
+
+For more examples and detailed information check out the [documentation](https://docs.rs/bloom_filter_simple).
