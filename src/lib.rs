@@ -230,7 +230,6 @@ pub trait BloomFilter {
 
 /// Calculate the optimal bit count to satisfy the desired constraints.
 fn optimal_bit_count(desired_capacity: usize, desired_false_positive_probability: f64) -> usize {
-    // m = ceil((n * ln(p)) / ln(1 / pow(2, ln(2)))); ln (1/(2^ln(2))) is approx. -0.48045301391
     ((desired_capacity as f64 * desired_false_positive_probability.ln())
         / (1.0 / 2.0f64.powf(2.0f64.ln())).ln())
     .ceil() as usize
@@ -238,7 +237,6 @@ fn optimal_bit_count(desired_capacity: usize, desired_false_positive_probability
 
 /// Calculate the optimal number of hashers to satisfy the desired constraints.
 fn optimal_number_of_hashers(desired_capacity: usize, bit_count: usize) -> usize {
-    // k = round((m / n) * ln(2)); ln(2) is approx. 0.693147
     ((bit_count as f64 / desired_capacity as f64) * 2.0f64.ln()).round() as usize
 }
 
