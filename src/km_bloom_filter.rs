@@ -22,8 +22,8 @@ use crate::{
 /// use std::collections::hash_map::DefaultHasher;
 ///
 /// fn main() {
-///     // We plan on storing at most 10 elements
-///     let desired_capacity = 10;
+///     // We plan on storing at most 10,000 elements
+///     let desired_capacity = 10_000;
 ///     // We want to assure that the chance of a false positive is less than 0.0001.
 ///     let desired_fp_probability = 0.0001;
 ///
@@ -74,8 +74,8 @@ where
     /// use std::collections::hash_map::DefaultHasher;
     ///
     /// fn main() {
-    ///     // We plan on storing at most 10 elements
-    ///     let desired_capacity = 10;
+    ///     // We plan on storing at most 10,000 elements
+    ///     let desired_capacity = 10_000;
     ///     // We want to assure that the chance of a false positive is less than 0.0001.
     ///     let desired_fp_probability = 0.0001;
     ///
