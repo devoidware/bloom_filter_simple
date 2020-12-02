@@ -1,17 +1,20 @@
-//! bloom-filter-simple is a library that offers different implementations of a simple bloom filter based
-//! on the initial ideas presented by Burton Howard Bloom:
+//! bloom-filter-simple is a library that offers different implementations of a data
+//! structure for filtering elements. The data structure is based on the ideas presented by Burton
+//! Howard Bloom and is therefore known as bloom filter:
 //! > Burton H. Bloom. 1970. Space/time trade-offs in hash coding with allowable errors. Commun.
 //! ACM 13, 7 (July 1970), 422–426. DOI:https://doi.org/10.1145/362686.362692
 //!
 //! # Overview
-//! Basic description from [Wikipedia](https://en.wikipedia.org/wiki/Bloom_filter):
+//! Basic description taken from [Wikipedia](https://en.wikipedia.org/wiki/Bloom_filter):
 //!
-//! > A Bloom filter is a space-efficient probabilistic data structure, conceived by Burton Howard
+//! > "A Bloom filter is a space-efficient probabilistic data structure, conceived by Burton Howard
 //! Bloom in 1970, that is used to test whether an element is a member of a set. False positive
 //! matches are possible, but false negatives are not – in other words, a query returns either
 //! "possibly in set" or "definitely not in set". Elements can be added to the set, but not removed
 //! (though this can be addressed with the counting Bloom filter variant); the more items added, the
-//! larger the probability of false positives.
+//! larger the probability of false positives."
+//!
+//! > ("Bloom filter". Definition, para. 1. In Wikipedia. Retrieved December 02, 2020, from https://en.wikipedia.org/wiki/Bloom_filter)
 //!
 //! # Bloom Filter Implementations
 //! The library offers two basic types of bloom filter implementations.
@@ -19,24 +22,27 @@
 //! ## Kirsch-Mitzenmacher Bloom Filter (KMBloomFilter)
 //! This type of bloom filter uses two hashers to simulate an arbitrary number of additional hash functions.
 //!
-//! The implementation is based on a publication by [Kirsch and Mitzenmacher](https://doi.org/10.1007/11841036_42).
+//! The implementation is based on the work of [Kirsch and Mitzenmacher](https://doi.org/10.1007/11841036_42) \[1\].
 //! In their work, they demonstrated that it is possible to apply simulated hash functions in a bloom
 //! filter effectively, i.e., without loss in the asymptotic false positive probability.
-//!
 //! Given two hash functions *h_1(x)* and *h_2(x)*, an *i*-th additional hash function *g_i(x)* can be
 //! simulated as *g_i(x) = h_1(x) + i* \* *h_2(x)*.
 //!
+//!  > [1] Kirsch A., Mitzenmacher M. (2006) Less Hashing, Same Performance: Building a Better Bloom Filter.
+//! In: Azar Y., Erlebach T. (eds) Algorithms – ESA 2006. ESA 2006. Lecture Notes in Computer Science, vol 4168.
+//! Springer, Berlin, Heidelberg. https://doi.org/10.1007/11841036_42
+//!
 //! ## Seeded Bloom Filter (SeededBloomFilter)
 //! A bloom filter that uses a single Hasher that can be seeded to simulate an arbitrary number of hash functions.
-//! Internally, the implementation uses ahash::AHasher.
+//! Internally, the implementation uses [ahash::AHasher](https://crates.io/crates/ahash).
 //!
 //! # Examples
 //! In the following, you can find simple examples of how to initialize and use the different bloom filter types.
 //!
 //! ## Default Bloom Filter
 //! The crate offers a default type for a KMBloomFilter that uses *ahash::AHasher* and Rust's
-//! *std::collections::hash_map::DefaultHasher* to simulate more hash functions. When comparing
-//! different hash functions for use by KMBloomFilter, this combination yielded the best results
+//! *std::collections::hash_map::DefaultHasher* to simulate more hash functions. We compared
+//! different hash functions for use by KMBloomFilter, and this combination yielded the best results
 //! with respect to the filter's false positive probability.
 //!
 //! We recommend using DefaultBloomFilter for quickly getting started.
@@ -47,10 +53,10 @@
 //!     // We plan on storing at most 10 elements
 //!     let desired_capacity = 10;
 //!     // The chance of a false positive increases with each inserted element. This parameter
-//!     // specifies that it should be less than 0.0001 (0.01%) when the desired capacity has
+//!     // specifies that it should be less than 0.01% (0.0001) when the desired capacity has
 //!     // been reached.
 //!     // In other words, the chance that the bloom filter returns true when checking whether a
-//!     // novel element has been inserted before is less than 0.0001 (0.01%).
+//!     // novel element has been inserted before is less than 0.01% (0.0001).
 //!     let desired_fp_probability = 0.0001;
 //!
 //!     let mut filter = DefaultBloomFilter::new(desired_capacity, desired_fp_probability);
@@ -78,7 +84,7 @@
 //! fn main() {
 //!     // We plan on storing at most 10 elements
 //!     let desired_capacity = 10;
-//!     // We want to assure that the chance of a false positive is less than 0.0001 (0.01%) for up to
+//!     // We want to assure that the chance of a false positive is less than 0.01% (0.0001) for up to
 //!     // desired_capacity elements.
 //!     let desired_fp_probability = 0.0001;
 //!
@@ -224,7 +230,6 @@ pub trait BloomFilter {
 
 /// Calculate the optimal bit count to satisfy the desired constraints.
 fn optimal_bit_count(desired_capacity: usize, desired_false_positive_probability: f64) -> usize {
-    // m = ceil((n * ln(p)) / ln(1 / pow(2, ln(2)))); ln (1/(2^ln(2))) is approx. -0.48045301391
     ((desired_capacity as f64 * desired_false_positive_probability.ln())
         / (1.0 / 2.0f64.powf(2.0f64.ln())).ln())
     .ceil() as usize
@@ -232,7 +237,6 @@ fn optimal_bit_count(desired_capacity: usize, desired_false_positive_probability
 
 /// Calculate the optimal number of hashers to satisfy the desired constraints.
 fn optimal_number_of_hashers(desired_capacity: usize, bit_count: usize) -> usize {
-    // k = round((m / n) * ln(2)); ln(2) is approx. 0.693147
     ((bit_count as f64 / desired_capacity as f64) * 2.0f64.ln()).round() as usize
 }
 
