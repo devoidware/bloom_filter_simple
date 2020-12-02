@@ -3,8 +3,9 @@
 [![Crate](https://img.shields.io/crates/v/bloom_filter_simple.svg)](https://crates.io/crates/bloom_filter_simple)
 [![API](https://docs.rs/bloom_filter_simple/badge.svg)](https://docs.rs/bloom_filter_simple)
 
-`bloom_filter_simple` is a library that offers different implementations of a simple bloom filter based
-on the initial ideas presented by Burton Howard Bloom:
+`bloom_filter_simple` is a library that offers different implementations of a data
+structure for filtering elements. The data structure is based on the ideas presented by Burton
+Howard Bloom and is therefore known as bloom filter:
 > Burton H. Bloom. 1970. Space/time trade-offs in hash coding with allowable errors. Commun.
 ACM 13, 7 (July 1970), 422–426. DOI:https://doi.org/10.1145/362686.362692
 
@@ -16,6 +17,8 @@ matches are possible, but false negatives are not – in other words, a query re
 "possibly in set" or "definitely not in set". Elements can be added to the set, but not removed
 (though this can be addressed with the counting Bloom filter variant); the more items added, the
 larger the probability of false positives.
+>
+>("Bloom filter". Definition, para. 1. In Wikipedia. Retrieved December 02, 2020, from https://en.wikipedia.org/wiki/Bloom_filter)
 
 ## Bloom Filter Implementations
 
