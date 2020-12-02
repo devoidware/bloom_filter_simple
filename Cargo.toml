@@ -5,6 +5,8 @@ authors = ["Helge Wrede <helge.wrede@protonmail.com>", "Alexander Schultheiß <a
 edition = "2018"
 license-file = "LICENSE"
 description = "A simple and generic bloom filter implementation."
+keywords = ["bloom", "filter", "bloomfilter", "bloom-filter"]
+categories = ["algorithms", "data-structures"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
