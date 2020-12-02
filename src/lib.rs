@@ -61,7 +61,7 @@
 //!     filter.insert(&"Some text");
 //!     filter.insert(&10_000usize);
 //!
-//!     // You can check whether a value has been inserted into by the filter before.
+//!     // You can check whether a value has been inserted into the filter before.
 //!     assert_eq!(false, filter.contains(&3));
 //!     assert_eq!(true, filter.contains(&5));
 //!     assert_eq!(true, filter.contains(&"Some text"));
@@ -96,7 +96,7 @@
 //!     filter.insert(&"Some text");
 //!     filter.insert(&10_000usize);
 //!
-//!     // You can check whether a value has been inserted into by the filter before.
+//!     // You can check whether a value has been inserted into the filter before.
 //!     assert_eq!(false, filter.contains(&3));
 //!     assert_eq!(true, filter.contains(&5));
 //!     assert_eq!(true, filter.contains(&"Some text"));
@@ -124,7 +124,7 @@
 //!     filter.insert(&"Some text");
 //!     filter.insert(&10_000usize);
 //!
-//!     // You can check whether a value has been inserted into by the filter before.
+//!     // You can check whether a value has been inserted into the filter before.
 //!     assert_eq!(false, filter.contains(&3));
 //!     assert_eq!(true, filter.contains(&5));
 //!     assert_eq!(true, filter.contains(&"Some text"));
