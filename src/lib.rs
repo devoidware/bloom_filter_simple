@@ -251,6 +251,8 @@ fn optimal_number_of_hashers(desired_capacity: usize, bit_count: usize) -> usize
 }
 
 /// Approximate number of elements stored.
+/// Formula taken from Wikipedia:
+/// > Wikipedia, ["Bloom filter"](https://en.wikipedia.org/wiki/Bloom_filter#Approximating_the_number_of_items_in_a_Bloom_filter) [Accessed: 02.12.2020]
 fn approximate_element_count(
     number_of_hashers: usize,
     bits_per_hasher: usize,

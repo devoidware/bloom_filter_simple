@@ -100,6 +100,8 @@ where
     }
 
     /// Approximate number of elements stored.
+    /// Approximation technique taken from Wikipedia:
+    /// > Wikipedia, ["Bloom filter"](https://en.wikipedia.org/wiki/Bloom_filter#Approximating_the_number_of_items_in_a_Bloom_filter) [Accessed: 02.12.2020]
     pub fn approximate_element_count(&self) -> f64 {
         approximate_element_count(
             self.number_of_hashers,
@@ -112,6 +114,8 @@ where
     /// number of elements in the filter.
     ///
     /// The probability is given as a value in the interval [0,1]
+    /// Approximation technique taken from Sagi Kedmi:
+    /// > S. Kedmi, ["Bloom Filters for the Perplexed"](https://sagi.io/bloom-filters-for-the-perplexed/), July 2017 [Accessed: 02.12.2020]
     pub fn approximate_current_false_positive_probability(&self) -> f64 {
         approximate_false_positive_probability(
             self.number_of_hashers,
@@ -120,6 +124,7 @@ where
         )
     }
 
+    /// TODO: Add comment
     pub fn union(&self, other: &Self) -> Self {
         if self.number_of_hashers != other.number_of_hashers
             || self.bits_per_hasher != other.bits_per_hasher
@@ -134,6 +139,7 @@ where
         }
     }
 
+    /// TODO: Add comment
     pub fn intersect(&self, other: &Self) -> Self {
         if self.number_of_hashers != other.number_of_hashers
             || self.bits_per_hasher != other.bits_per_hasher
