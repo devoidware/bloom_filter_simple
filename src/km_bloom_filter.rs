@@ -67,6 +67,11 @@ where
     /// functions. *H1* and *H2* are specified as type parameters (see examples): KMBloomFilter<H1, H2>.
     ///
     /// ***You have to use two different hash functions for *H1* and *H2*!***
+    ///
+    /// # Panics
+    ///
+    /// Panics if desired_capacity == 0
+    ///
     /// # Examples
     /// ```
     /// use bloom_filter_simple::{BloomFilter,KMBloomFilter};
@@ -124,11 +129,16 @@ where
         )
     }
 
-    /// TODO: Add comment
+    /// Creates a union of this bloom filter and 'other', which means 'contains' of the resulting
+    /// bloom filter will always return true for elements inserted in either this bloom filter or in
+    /// 'other' before creation.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the desired capacity or desired false positive probability of 'self' and 'other'
+    /// differ.
     pub fn union(&self, other: &Self) -> Self {
-        if self.number_of_hashers != other.number_of_hashers
-            || self.bits_per_hasher != other.bits_per_hasher
-        {
+        if !self.eq_configuration(other) {
             panic!("unable to union k-m bloom filters with different configurations");
         }
         Self {
@@ -139,11 +149,22 @@ where
         }
     }
 
-    /// TODO: Add comment
+    /// Creates a intersection of this bloom filter and 'other', which means 'contains' of the resulting
+    /// bloom filter will always return true for elements inserted both in this bloom filter and in
+    /// 'other' before creation.
+    /// The false positive probability of the resulting bloom filter is at most the false positive
+    /// probability of 'other' or 'self'.
+    /// The false positive probability of the resulting bloom filter may be bigger than the false
+    /// positive probability of a new empty bloom filter with the intersecting elements inserted.
+    /// The functions 'approximate_current_false_positive_probability' and 'approximate_element_count'
+    /// called on the resulting bloom filter may return too big approximations.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the desired capacity or desired false positive probability of 'self' and 'other'
+    /// differ.
     pub fn intersect(&self, other: &Self) -> Self {
-        if self.number_of_hashers != other.number_of_hashers
-            || self.bits_per_hasher != other.bits_per_hasher
-        {
+        if !self.eq_configuration(other) {
             panic!("unable to intersect k-m bloom filters with different configurations");
         }
         Self {
@@ -152,6 +173,13 @@ where
             bits_per_hasher: self.bits_per_hasher,
             _phantom: self._phantom,
         }
+    }
+
+    /// Checks whether two bloom filters were created with the same desired capacity and desired false
+    /// positive probability.
+    pub fn eq_configuration(&self, other: &Self) -> bool {
+        self.number_of_hashers == other.number_of_hashers
+            && self.bits_per_hasher == other.bits_per_hasher
     }
 
     fn generate_hashes<T>(&self, data: &T) -> (u64, u64)
