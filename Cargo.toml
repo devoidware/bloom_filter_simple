@@ -7,7 +7,7 @@ license-file = "LICENSE"
 description = "A simple and generic bloom filter implementation."
 keywords = ["bloom", "filter", "bloomfilter", "bloom-filter"]
 categories = ["algorithms", "data-structures"]
-homepage = "devoidware.com"
+homepage = "http://devoidware.com"
 repository = "https://github.com/devoidware/bloom_filter_simple"
 
 [dependencies]
