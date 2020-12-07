@@ -1,4 +1,4 @@
-//! bloom-filter-simple is a library that offers different implementations of a data
+//! bloom_filter_simple is a library that offers different implementations of a data
 //! structure for filtering elements. The data structure is based on the ideas presented by Burton
 //! Howard Bloom and is therefore known as bloom filter:
 //! > Burton H. Bloom. 1970. Space/time trade-offs in hash coding with allowable errors. Commun.
@@ -28,7 +28,7 @@
 //! Given two hash functions *h_1(x)* and *h_2(x)*, an *i*-th additional hash function *g_i(x)* can be
 //! simulated as *g_i(x) = h_1(x) + i* \* *h_2(x)*.
 //!
-//!  > [1] Kirsch A., Mitzenmacher M. (2006) Less Hashing, Same Performance: Building a Better Bloom Filter.
+//!  > \[1\] Kirsch A., Mitzenmacher M. (2006) Less Hashing, Same Performance: Building a Better Bloom Filter.
 //! In: Azar Y., Erlebach T. (eds) Algorithms – ESA 2006. ESA 2006. Lecture Notes in Computer Science, vol 4168.
 //! Springer, Berlin, Heidelberg. https://doi.org/10.1007/11841036_42
 //!
