@@ -12,9 +12,8 @@
 //! matches are possible, but false negatives are not – in other words, a query returns either
 //! "possibly in set" or "definitely not in set". Elements can be added to the set, but not removed
 //! (though this can be addressed with the counting Bloom filter variant); the more items added, the
-//! larger the probability of false positives."
-//!
-//! > ("Bloom filter". Definition, para. 1. In Wikipedia. Retrieved December 02, 2020, from https://en.wikipedia.org/wiki/Bloom_filter)
+//! larger the probability of false positives." ("Bloom filter". Definition, para. 1. In Wikipedia.
+//! Retrieved December 02, 2020, from https://en.wikipedia.org/wiki/Bloom_filter)
 //!
 //! # Bloom Filter Implementations
 //! The library offers two basic types of bloom filter implementations.
@@ -238,9 +237,8 @@ pub trait BloomFilter {
 /// Formula taken from Sagi Kedmi:
 /// > S. Kedmi, ["Bloom Filters for the Perplexed"](https://sagi.io/bloom-filters-for-the-perplexed/), July 2017 [Accessed: 02.12.2020]
 fn optimal_bit_count(desired_capacity: usize, desired_false_positive_probability: f64) -> usize {
-    (-(desired_capacity as f64 * desired_false_positive_probability.ln())
-        / (2.0f64.ln().powi(2)))
-    .ceil() as usize
+    (-(desired_capacity as f64 * desired_false_positive_probability.ln()) / (2.0f64.ln().powi(2)))
+        .ceil() as usize
 }
 
 /// Calculate the optimal number of hashers to satisfy the desired constraints.

@@ -7,7 +7,7 @@
 structure for filtering elements. The data structure is based on the ideas presented by Burton
 Howard Bloom and is therefore known as bloom filter:
 > Burton H. Bloom. 1970. Space/time trade-offs in hash coding with allowable errors. Commun.
-ACM 13, 7 (July 1970), 422–426. DOI:https://doi.org/10.1145/362686.362692
+ACM 13, 7 (July 1970), 422–426. DOI: https://doi.org/10.1145/362686.362692
 
 Basic description from [Wikipedia](https://en.wikipedia.org/wiki/Bloom_filter):
 
@@ -16,9 +16,8 @@ Bloom in 1970, that is used to test whether an element is a member of a set. Fal
 matches are possible, but false negatives are not – in other words, a query returns either
 "possibly in set" or "definitely not in set". Elements can be added to the set, but not removed
 (though this can be addressed with the counting Bloom filter variant); the more items added, the
-larger the probability of false positives.
->
->("Bloom filter". Definition, para. 1. In Wikipedia. Retrieved December 02, 2020, from https://en.wikipedia.org/wiki/Bloom_filter)
+larger the probability of false positives. ("Bloom filter". Definition, para. 1. In Wikipedia.
+Retrieved December 02, 2020, from https://en.wikipedia.org/wiki/Bloom_filter)
 
 ## Bloom Filter Implementations
 
@@ -76,5 +75,7 @@ The `SeededBloomFilter` requires no configuration as it uses only one specific h
 ```rust
 SeededBloomFilter::new(desired_capacity, desired_fp_probability);
 ```
+
+## More
 
 For more examples and detailed information check out the [documentation](https://docs.rs/bloom_filter_simple).
