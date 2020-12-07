@@ -160,7 +160,7 @@ fn test_bloom_filter_probability<H1, H2>(
     }
     assert!(bloom_filter.approximate_current_false_positive_probability() <= allowed_probability);
 
-    let true_checks = (0..(desired_capacity * 2))
+    let true_checks = (desired_capacity..(desired_capacity * 2))
         .map(|i| bloom_filter.contains(&i))
         .filter(|c| *c)
         .count();
@@ -182,7 +182,7 @@ fn test_bloom_filter_probability<H1, H2>(
     );
     println!(
         "Tested false positive probability: {} ({})",
-        (true_checks as f64 - desired_capacity as f64) / desired_capacity as f64,
+        true_checks as f64 / desired_capacity as f64,
         allowed_probability
     );
     assert!(true_checks <= (desired_capacity as f64 * (1.0 + allowed_probability)) as usize);
@@ -206,8 +206,9 @@ fn test_bloom_filter_probability_random<H1, H2>(
     }
     assert!(bloom_filter.approximate_current_false_positive_probability() <= allowed_probability);
 
+    let seed = [0x3Fu8; 32];
     let mut rng = rand::rngs::StdRng::from_seed(seed);
-    let true_checks = (0..(desired_capacity * 2))
+    let true_checks = (0..desired_capacity)
         .map(|_| bloom_filter.contains(&rng.sample(distribution)))
         .filter(|c| *c)
         .count();
@@ -230,7 +231,7 @@ fn test_bloom_filter_probability_random<H1, H2>(
 
     println!(
         "Tested false positive probability: {} ({})",
-        (true_checks as f64 - desired_capacity as f64) / desired_capacity as f64,
+        true_checks as f64 / desired_capacity as f64,
         allowed_probability
     );
     assert!(true_checks <= (desired_capacity as f64 * (1.0 + allowed_probability)) as usize);
@@ -248,7 +249,7 @@ fn test_seeded_bloom_filter_probability(
     }
     assert!(bloom_filter.approximate_current_false_positive_probability() <= allowed_probability);
 
-    let true_checks = (0..(desired_capacity * 2))
+    let true_checks = (desired_capacity..(desired_capacity * 2))
         .map(|i| bloom_filter.contains(&i))
         .filter(|c| *c)
         .count();
@@ -266,7 +267,7 @@ fn test_seeded_bloom_filter_probability(
     );
     println!(
         "Tested false positive probability: {} ({})",
-        (true_checks as f64 - desired_capacity as f64) / desired_capacity as f64,
+        true_checks as f64 / desired_capacity as f64,
         allowed_probability
     );
     assert!(true_checks <= (desired_capacity as f64 * (1.0 + allowed_probability)) as usize);
@@ -334,8 +335,9 @@ fn km_bloom_filter_union_test() {
 
     let bloom_filter = bloom_filter_a.union(&bloom_filter_b);
 
+    let seed = [0x91u8; 32];
     let mut rng = StdRng::from_seed(seed);
-    let true_checks = (0..(desired_capacity * 2))
+    let true_checks = (0..desired_capacity)
         .map(|_| bloom_filter.contains(&rng.sample(distribution)))
         .filter(|c| *c)
         .count();
@@ -357,7 +359,7 @@ fn km_bloom_filter_union_test() {
     );
     println!(
         "Tested false positive probability: {} ({})",
-        (true_checks as f64 - desired_capacity as f64) / desired_capacity as f64,
+        true_checks as f64 / desired_capacity as f64,
         allowed_probability
     );
     assert!(true_checks <= (desired_capacity as f64 * (1.0 + allowed_probability)) as usize);
@@ -377,7 +379,7 @@ fn km_bloom_filter_intersect_test() {
         false_positive_probability,
     );
 
-    let seed = [0xb7u8; 32];
+    let seed = [0x2Au8; 32];
     let mut rng = StdRng::from_seed(seed);
     let distribution = Uniform::new(u64::MIN, u64::MAX);
 
@@ -399,8 +401,9 @@ fn km_bloom_filter_intersect_test() {
 
     let bloom_filter = bloom_filter_a.intersect(&bloom_filter_b);
 
+    let seed = [0xCAu8; 32];
     let mut rng = StdRng::from_seed(seed);
-    let true_checks = (0..(desired_capacity * 2))
+    let true_checks = (0..desired_capacity)
         .map(|_| bloom_filter.contains(&rng.sample(distribution)))
         .filter(|c| *c)
         .count();
@@ -422,7 +425,7 @@ fn km_bloom_filter_intersect_test() {
     );
     println!(
         "Tested false positive probability: {} ({})",
-        (true_checks as f64 - desired_capacity as f64) / desired_capacity as f64,
+        true_checks as f64 / desired_capacity as f64,
         allowed_probability
     );
     assert!(true_checks <= (desired_capacity as f64 * (1.0 + allowed_probability)) as usize);
