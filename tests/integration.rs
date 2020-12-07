@@ -275,7 +275,7 @@ fn test_seeded_bloom_filter_probability(
 
 #[test]
 fn test_bloom_filter_with_strings() {
-    let mut bloom_filter = DefaultBloomFilter::new(3, 0.001);
+    let mut bloom_filter = DefaultBloomFilter::new(1000, 0.001);
 
     bloom_filter.insert(&"This");
     bloom_filter.insert(&"is");
