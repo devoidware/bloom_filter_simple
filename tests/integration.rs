@@ -50,22 +50,6 @@ fn false_positive_probability_seeded() {
 }
 
 #[test]
-fn false_positive_probability_test_default_fnv() {
-    let desired_capacity = 1_000_000;
-    let false_positive_probability = 0.001;
-    let relative_error_margin = 0.034;
-    let bloom_filter: KMBloomFilter<DefaultHasher, fnv::FnvHasher> =
-        KMBloomFilter::new(desired_capacity, false_positive_probability);
-
-    test_bloom_filter_probability(
-        desired_capacity,
-        false_positive_probability,
-        bloom_filter,
-        relative_error_margin,
-    );
-}
-
-#[test]
 fn false_positive_probability_default_ahash() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
@@ -90,22 +74,6 @@ fn false_positive_probability_xx_default() {
         KMBloomFilter::new(desired_capacity, false_positive_probability);
 
     test_bloom_filter_probability(
-        desired_capacity,
-        false_positive_probability,
-        bloom_filter,
-        relative_error_margin,
-    );
-}
-
-#[test]
-fn false_positive_probability_test_random_default_fnv() {
-    let desired_capacity = 1_000_000;
-    let false_positive_probability = 0.001;
-    let relative_error_margin = 0.04;
-    let bloom_filter: KMBloomFilter<DefaultHasher, fnv::FnvHasher> =
-        KMBloomFilter::new(desired_capacity, false_positive_probability);
-
-    test_bloom_filter_probability_random(
         desired_capacity,
         false_positive_probability,
         bloom_filter,
