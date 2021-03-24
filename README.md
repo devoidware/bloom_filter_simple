@@ -21,7 +21,7 @@ Retrieved December 02, 2020, from https://en.wikipedia.org/wiki/Bloom_filter)
 
 ## Bloom Filter Implementations
 
-The library offers two basic types of bloom filter implementations: `KMBloomFilter` and `SeededBloomFilter`. The former uses two hash functions while the latter uses only one hash function but different seeds to generate different hashes.
+The library offers two basic types of bloom filter implementations: `KMBloomFilter` and `SingleHasherBloomFilter`. The former uses two hash functions while the latter uses only one hash function but different seeds to generate different hashes.
 
 ## Examples
 
@@ -68,12 +68,12 @@ The `KMBloomFilter` lets you choose which hash functions should be used.
 KMBloomFilter<AHasher, DefaultHasher> = KMBloomFilter::new(desired_capacity, desired_fp_probability);
 ```
 
-### `SeededBloomFilter`
+### `SingleHasherBloomFilter`
 
-The `SeededBloomFilter` requires no configuration as it uses only one specific hash function which is seeded automatically.
+The `SingleHasherBloomFilter` requires no configuration as it uses only one specific hash function which is seeded automatically.
 
 ```rust
-SeededBloomFilter::new(desired_capacity, desired_fp_probability);
+SingleHasherBloomFilter::new(desired_capacity, desired_fp_probability);
 ```
 
 ## More

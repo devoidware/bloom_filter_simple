@@ -1,4 +1,4 @@
-use bloom_filter_simple::{BloomFilter, DefaultBloomFilter, SeededBloomFilter};
+use bloom_filter_simple::{BloomFilter, DefaultBloomFilter, SingleHasherBloomFilter};
 use std::time::Instant;
 
 #[test]
@@ -36,13 +36,13 @@ fn measure_inserting_seeded() {
 }
 
 fn inserting_seeded(element_count: usize) {
-    let mut bloom_filter = SeededBloomFilter::new(element_count, 0.001);
+    let mut bloom_filter = SingleHasherBloomFilter::new(element_count, 0.001);
     let start = Instant::now();
     for i in 0..element_count {
         bloom_filter.insert(&i);
     }
     println!(
-        "Inserting {} elements into SeededBloomFilter took {:?}, or {:?} per element",
+        "Inserting {} elements into SingleHasherBloomFilter took {:?}, or {:?} per element",
         element_count,
         start.elapsed(),
         start.elapsed() / element_count as u32
@@ -87,7 +87,7 @@ fn measure_checking_seeded() {
 }
 
 fn checking_seeded(element_count: usize) {
-    let mut bloom_filter = SeededBloomFilter::new(element_count, 0.001);
+    let mut bloom_filter = SingleHasherBloomFilter::new(element_count, 0.001);
     for i in 0..element_count {
         bloom_filter.insert(&i);
     }
@@ -96,7 +96,7 @@ fn checking_seeded(element_count: usize) {
         bloom_filter.contains(&i);
     }
     println!(
-        "Checking {} elements in SeededBloomFilter took {:?}, or {:?} per element",
+        "Checking {} elements in SingleHasherBloomFilter took {:?}, or {:?} per element",
         element_count,
         start.elapsed(),
         start.elapsed() / element_count as u32

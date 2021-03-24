@@ -31,7 +31,7 @@
 //! In: Azar Y., Erlebach T. (eds) Algorithms – ESA 2006. ESA 2006. Lecture Notes in Computer Science, vol 4168.
 //! Springer, Berlin, Heidelberg. https://doi.org/10.1007/11841036_42
 //!
-//! ## Seeded Bloom Filter (SeededBloomFilter)
+//! ## Single Hasher Bloom Filter (SingleHasherBloomFilter)
 //! A bloom filter that uses a single Hasher that can be seeded to simulate an arbitrary number of hash functions.
 //! Internally, the implementation uses [ahash::AHasher](https://crates.io/crates/ahash).
 //!
@@ -113,10 +113,10 @@
 //! }
 //! ```
 //!
-//! ## SeededBloomFilter
-//! Initialization and application of a SeededBloomFilter.
+//! ## SingleHasherBloomFilter
+//! Initialization and application of a SingleHasherBloomFilter.
 //! ```
-//! use bloom_filter_simple::{BloomFilter,SeededBloomFilter};
+//! use bloom_filter_simple::{BloomFilter,SingleHasherBloomFilter};
 //!
 //! fn main() {
 //!     // We plan on storing at most 10,000 elements
@@ -125,8 +125,8 @@
 //!     // for up to desired_capacity elements.
 //!     let desired_fp_probability = 0.0001;
 //!
-//!     // A SeededBloomFilter uses a single seeded ahash::AHasher internally.
-//!     let mut filter = SeededBloomFilter::new(desired_capacity, desired_fp_probability);
+//!     // A SingleHasherBloomFilter uses a single seeded ahash::AHasher internally.
+//!     let mut filter = SingleHasherBloomFilter::new(desired_capacity, desired_fp_probability);
 //!
 //!     // You can insert any type implementing the Hash trait. The bloom filter does
 //!     // not store the inserted elements but only their hashes. Hence, there is no
@@ -149,7 +149,7 @@ mod km_bloom_filter;
 mod seeded_bloom_filter;
 
 pub use km_bloom_filter::KMBloomFilter;
-pub use seeded_bloom_filter::SeededBloomFilter;
+pub use seeded_bloom_filter::SingleHasherBloomFilter;
 
 /**
  A default implementation of KMBloomFilter using ahash::AHasher and collections::hash_map::DefaultHasher.

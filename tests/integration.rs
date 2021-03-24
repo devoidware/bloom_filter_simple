@@ -1,6 +1,8 @@
 use std::{collections::hash_map::DefaultHasher, hash::Hasher};
 
-use bloom_filter_simple::{BloomFilter, DefaultBloomFilter, KMBloomFilter, SeededBloomFilter};
+use bloom_filter_simple::{
+    BloomFilter, DefaultBloomFilter, KMBloomFilter, SingleHasherBloomFilter,
+};
 use rand::{distributions::Uniform, prelude::StdRng, Rng, SeedableRng};
 use xxhash_rust::xxh3;
 
@@ -39,7 +41,7 @@ fn false_positive_probability_seeded() {
     let desired_capacity = 1_000_000;
     let false_positive_probability = 0.001;
     let relative_error_margin = 0.06;
-    let bloom_filter = SeededBloomFilter::new(desired_capacity, false_positive_probability);
+    let bloom_filter = SingleHasherBloomFilter::new(desired_capacity, false_positive_probability);
 
     test_seeded_bloom_filter_probability(
         desired_capacity,
@@ -119,8 +121,8 @@ fn test_bloom_filter_probability<H1, H2>(
     mut bloom_filter: KMBloomFilter<H1, H2>,
     relative_error_margin: f64,
 ) where
-    H1: Hasher + Default,
-    H2: Hasher + Default,
+    H1: Hasher + Default + Clone,
+    H2: Hasher + Default + Clone,
 {
     let allowed_probability = false_positive_probability * (1.0 + relative_error_margin);
     for i in 0..desired_capacity {
@@ -162,8 +164,8 @@ fn test_bloom_filter_probability_random<H1, H2>(
     mut bloom_filter: KMBloomFilter<H1, H2>,
     relative_error_margin: f64,
 ) where
-    H1: Hasher + Default,
-    H2: Hasher + Default,
+    H1: Hasher + Default + Clone,
+    H2: Hasher + Default + Clone,
 {
     let seed = [0xb7u8; 32];
     let mut rng = StdRng::from_seed(seed);
@@ -208,7 +210,7 @@ fn test_bloom_filter_probability_random<H1, H2>(
 fn test_seeded_bloom_filter_probability(
     desired_capacity: usize,
     false_positive_probability: f64,
-    mut bloom_filter: SeededBloomFilter,
+    mut bloom_filter: SingleHasherBloomFilter,
     relative_error_margin: f64,
 ) {
     let allowed_probability = false_positive_probability * (1.0 + relative_error_margin);

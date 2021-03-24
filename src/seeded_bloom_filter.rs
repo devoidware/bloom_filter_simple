@@ -10,18 +10,18 @@ use std::hash::{Hash, Hasher};
 /// of hash functions.
 ///
 /// Internally, the implementation uses *ahash::AHasher*.
-pub struct SeededBloomFilter {
+pub struct SingleHasherBloomFilter {
     number_of_hashers: usize,
     bitset: Bitset,
     bits_per_hasher: usize,
 }
 
-impl SeededBloomFilter {
-    /// Initialize a new instance of SeededBloomFilter that guarantees that the false positive rate
+impl SingleHasherBloomFilter {
+    /// Initialize a new instance of SingleHasherBloomFilter that guarantees that the false positive rate
     /// is less than *desired_false_positive_probability* for up to *desired_capacity*
     /// elements.
     ///
-    /// SeededBloomFilter uses a single hash function that can be seeded to simulate an arbitrary
+    /// SingleHasherBloomFilter uses a single hash function that can be seeded to simulate an arbitrary
     /// number of hash functions.
     ///
     /// # Panics
@@ -30,7 +30,7 @@ impl SeededBloomFilter {
     ///
     /// # Examples
     /// ```
-    /// use bloom_filter_simple::{BloomFilter,SeededBloomFilter};
+    /// use bloom_filter_simple::{BloomFilter,SingleHasherBloomFilter};
     ///
     /// fn main() {
     ///     // We plan on storing at most 10 elements
@@ -38,9 +38,9 @@ impl SeededBloomFilter {
     ///     // We want to assure that the chance of a false positive is less than 0.0001.
     ///     let desired_fp_probability = 0.0001;
     ///
-    ///     // We initialize a new SeededBloomFilter by specifying the desired Hashers as type
+    ///     // We initialize a new SingleHasherBloomFilter by specifying the desired Hashers as type
     ///     // parameters
-    ///     let mut filter = SeededBloomFilter::new(desired_capacity, desired_fp_probability);
+    ///     let mut filter = SingleHasherBloomFilter::new(desired_capacity, desired_fp_probability);
     /// }
     /// ```
     pub fn new(desired_capacity: usize, desired_false_positive_probability: f64) -> Self {
@@ -90,26 +90,26 @@ impl SeededBloomFilter {
     ///
     /// Panics if the desired capacity or desired false positive probability of 'self' and 'other'
     /// differ.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// Union of two bloom filters with the same configuration.
     /// ```
-    /// use bloom_filter_simple::{BloomFilter,SeededBloomFilter};
+    /// use bloom_filter_simple::{BloomFilter,SingleHasherBloomFilter};
     ///
     /// fn main() {
     ///     // The configuration of both bloom filters has to be the same
     ///     let desired_capacity = 10_000;
     ///     let desired_fp_probability = 0.0001;
     ///
-    ///     // We initialize two new SeededBloomFilter 
-    ///     let mut filter_one = SeededBloomFilter::new(desired_capacity, desired_fp_probability);
-    ///     let mut filter_two = SeededBloomFilter::new(desired_capacity, desired_fp_probability);
-    /// 
+    ///     // We initialize two new SingleHasherBloomFilter
+    ///     let mut filter_one = SingleHasherBloomFilter::new(desired_capacity, desired_fp_probability);
+    ///     let mut filter_two = SingleHasherBloomFilter::new(desired_capacity, desired_fp_probability);
+    ///
     ///     // Insert elements into the first filter
     ///     filter_one.insert(&0);
     ///     filter_one.insert(&1);
-    /// 
+    ///
     ///     // Insert elements into the second filter
     ///     filter_two.insert(&2);
     ///     filter_two.insert(&3);
@@ -117,7 +117,7 @@ impl SeededBloomFilter {
     ///     // Now we retrieve the union of both filters
     ///     let filter_union = filter_one.union(&filter_two);
     ///
-    ///     // The union will return true for a 'contains' check for the elements inserted 
+    ///     // The union will return true for a 'contains' check for the elements inserted
     ///     // previously into at least one of the constituent filters.
     ///     assert_eq!(true, filter_union.contains(&0));
     ///     assert_eq!(true, filter_union.contains(&1));
@@ -152,24 +152,24 @@ impl SeededBloomFilter {
     /// differ.
     ///
     /// # Examples
-    /// 
+    ///
     /// Intersection of two bloom filters with the same configuration.
     /// ```
-    /// use bloom_filter_simple::{BloomFilter,SeededBloomFilter};
+    /// use bloom_filter_simple::{BloomFilter,SingleHasherBloomFilter};
     ///
     /// fn main() {
     ///     // The configuration of both bloom filters has to be the same
     ///     let desired_capacity = 10_000;
     ///     let desired_fp_probability = 0.0001;
     ///
-    ///     // We initialize two new SeededBloomFilter 
-    ///     let mut filter_one = SeededBloomFilter::new(desired_capacity, desired_fp_probability);
-    ///     let mut filter_two = SeededBloomFilter::new(desired_capacity, desired_fp_probability);
-    /// 
+    ///     // We initialize two new SingleHasherBloomFilter
+    ///     let mut filter_one = SingleHasherBloomFilter::new(desired_capacity, desired_fp_probability);
+    ///     let mut filter_two = SingleHasherBloomFilter::new(desired_capacity, desired_fp_probability);
+    ///
     ///     // Insert elements into the first filter
     ///     filter_one.insert(&0);
     ///     filter_one.insert(&1);
-    /// 
+    ///
     ///     // Insert elements into the second filter
     ///     filter_two.insert(&1);
     ///     filter_two.insert(&2);
@@ -177,7 +177,7 @@ impl SeededBloomFilter {
     ///     // Now we retrieve the intersection of both filters
     ///     let filter_intersection = filter_one.intersect(&filter_two);
     ///
-    ///     // The intersection will return true for a 'contains' check for the elements inserted 
+    ///     // The intersection will return true for a 'contains' check for the elements inserted
     ///     // previously into both constituent filters.
     ///     assert_eq!(false, filter_intersection.contains(&0));
     ///     assert_eq!(true, filter_intersection.contains(&1));
@@ -212,13 +212,13 @@ impl SeededBloomFilter {
     }
 }
 
-impl Debug for SeededBloomFilter {
+impl Debug for SingleHasherBloomFilter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "SeededBloomFilter{{{:?}}}", self.bitset)
+        write!(f, "SingleHasherBloomFilter{{{:?}}}", self.bitset)
     }
 }
 
-impl BloomFilter for SeededBloomFilter {
+impl BloomFilter for SingleHasherBloomFilter {
     fn insert<T>(&mut self, data: &T)
     where
         T: Hash,
