@@ -235,17 +235,34 @@ fn test_bloom_filter_probability_random<H1, H2, S1, S2>(
 {
     let seed = [0xb7u8; 32];
     let mut rng = StdRng::from_seed(seed);
-    let distribution = Uniform::new(u64::MIN, u64::MAX);
+    let vector_len = 128;
+    let distribution = Uniform::new(u128::MIN, u128::MAX);
     let allowed_probability = false_positive_probability * (1.0 + relative_error_margin);
+    let mut duration = std::time::Duration::default();
     for _ in 0..desired_capacity {
-        bloom_filter.insert(&rng.sample(distribution));
+        let mut vector = Vec::with_capacity(vector_len);
+        for _ in 0..vector_len {
+            vector.push(rng.sample(distribution))
+        }
+        let start = std::time::Instant::now();
+        bloom_filter.insert(&vector);
+        duration += start.elapsed();
     }
+    println!("Inserting took {:?}", duration);
     assert!(bloom_filter.approximate_current_false_positive_probability() <= allowed_probability);
 
     let seed = [0x3Fu8; 32];
     let mut rng = rand::rngs::StdRng::from_seed(seed);
     let true_checks = (0..desired_capacity)
-        .map(|_| bloom_filter.contains(&rng.sample(distribution)))
+        .map(|_| {
+            bloom_filter.contains(&{
+                let mut vector = Vec::with_capacity(vector_len);
+                for _ in 0..vector_len {
+                    vector.push(rng.sample(distribution))
+                }
+                vector
+            })
+        })
         .filter(|c| *c)
         .count();
 
@@ -465,4 +482,36 @@ fn km_bloom_filter_intersect_test() {
         allowed_probability
     );
     assert!(true_checks <= (desired_capacity as f64 * (1.0 + allowed_probability)) as usize);
+}
+
+#[test]
+fn highway_speed_test() {
+    let data = [255; 512];
+    let loops = 1024 * 1024;
+    let start = std::time::Instant::now();
+    let mut hasher = HighwayHasher::default();
+    for _ in 0..loops {
+        hasher.append(&data);
+    }
+    hasher.finalize256();
+    println!(
+        "Hashspeed {:?}GBytes/s",
+        (data.len() * loops) as f32 / start.elapsed().as_secs_f32() / 1024.0 / 1024.0 / 1024.0
+    );
+}
+
+#[test]
+fn ahash_speed_test() {
+    let data = [255; 512];
+    let loops = 1024 * 1024;
+    let start = std::time::Instant::now();
+    let mut hasher = AHasher::default();
+    for _ in 0..loops {
+        hasher.write(&data);
+    }
+    hasher.finish();
+    println!(
+        "Hashspeed {:?}GBytes/s",
+        (data.len() * loops) as f32 / start.elapsed().as_secs_f32() / 1024.0 / 1024.0 / 1024.0
+    );
 }
