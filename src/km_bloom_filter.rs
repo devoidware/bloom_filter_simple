@@ -8,6 +8,32 @@ use crate::{
     optimal_bit_count, optimal_number_of_hashers, BloomFilter,
 };
 
+pub type KMBloomFilter<H1, H2> = SeededKMBloomFilter<H1, H2, (), ()>;
+
+/// In order to create hash functions with seeds, this trait needs to be implemented for the given hash function.
+/// *H* is the hasher to be created. *S* is the type of the seed needed to create *H*.
+///
+/// # Examples
+/// ```
+/// use bloom_filter_simple::HasherBuilder;
+/// use ahash::AHasher;
+///
+/// struct AHasherBuilder;
+///
+/// impl HasherBuilder<AHasher, (u128, u128)> for AHasherBuilder {
+///     fn new_with_seed(seed: (u128, u128)) -> AHasher {
+///         AHasher::new_with_keys(seed.0, seed.1)
+///     }
+/// }
+/// ```
+pub trait HasherBuilder<H, S>
+where
+    H: Hasher + Clone,
+    S: Clone + PartialEq,
+{
+    fn new_with_seed(seed: S) -> H;
+}
+
 /// Bloom filter implementation using the improvements described by Kirsch and Mitzenmacher:
 ///
 /// > Kirsch A., Mitzenmacher M. (2006) Less Hashing, Same Performance: Building a Better Bloom Filter.
@@ -41,23 +67,91 @@ use crate::{
 ///     assert_eq!(true, filter.contains(&"Some text"));
 /// }
 /// ```
-pub struct KMBloomFilter<H1, H2>
+pub struct SeededKMBloomFilter<H1, H2, S1, S2>
 where
     H1: Hasher + Clone,
     H2: Hasher + Clone,
+    S1: Clone + PartialEq,
+    S2: Clone + PartialEq,
 {
     number_of_hashers: usize,
     bitset: Bitset,
     bits_per_hasher: usize,
     hasher1: H1,
     hasher2: H2,
+    seed1: Option<S1>,
+    seed2: Option<S2>,
 }
 
-impl<H1, H2> KMBloomFilter<H1, H2>
+impl<H1, H2, S1, S2> SeededKMBloomFilter<H1, H2, S1, S2>
 where
     H1: Hasher + Clone,
     H2: Hasher + Clone,
+    S1: Clone + PartialEq,
+    S2: Clone + PartialEq,
 {
+    /// Initialize a new instance of SeededKMBloomFilter that guarantees that the false positive rate
+    /// is less than *desired_false_positive_probability* for up to *desired_capacity*
+    /// elements. The given seeds *seed1* and *seed2* are used to initialize the two used hash functions (*H1*, *H2*).
+    ///
+    /// SeededKMBloomFilter uses two seeded hash functions *H1* and *H2* with seed types *S1* and *S2* to simulate an arbitrary number of hash
+    /// functions. *H1*, *H2*, *S1* and *S2* are specified as type parameters (see examples): SeededKMBloomFilter<H1, H2, S1, S2>.
+    ///
+    /// ***You have to either use two different hash functions for *H1* and *H2* or at least different seeds!***
+    ///
+    /// # Panics
+    ///
+    /// Panics if desired_capacity == 0
+    ///
+    /// # Examples
+    /// ```
+    /// use bloom_filter_simple::{BloomFilter, SeededKMBloomFilter, HasherBuilder};
+    /// use ahash::AHasher;
+    ///
+    /// struct AHasherBuilder;
+    ///
+    /// impl HasherBuilder<AHasher, (u128, u128)> for AHasherBuilder {
+    /// fn new_with_seed(seed: (u128, u128)) -> AHasher {
+    ///         AHasher::new_with_keys(seed.0, seed.1)
+    ///     }
+    /// }
+    ///
+    /// fn main() {
+    ///     // We plan on storing at most 10,000 elements
+    ///     let desired_capacity = 10_000;
+    ///     // We want to assure that the chance of a false positive is less than 0.0001.
+    ///     let desired_fp_probability = 0.0001;
+    ///
+    ///     // We initialize a new SeededKMBloomFilter by specifying the desired Hashers as type parameters
+    ///     let mut filter = SeededKMBloomFilter::new_with_seeds::<AHasherBuilder, AHasherBuilder>(desired_capacity, desired_fp_probability, (1,1), (2,2));
+    /// }
+    /// ```
+    pub fn new_with_seeds<B1, B2>(
+        desired_capacity: usize,
+        desired_false_positive_probability: f64,
+        seed1: S1,
+        seed2: S2,
+    ) -> Self
+    where
+        B1: HasherBuilder<H1, S1>,
+        B2: HasherBuilder<H2, S2>,
+    {
+        if desired_capacity == 0 {
+            panic!("an empty bloom filter is not defined");
+        }
+        let bit_count = optimal_bit_count(desired_capacity, desired_false_positive_probability);
+        let number_of_hashers = optimal_number_of_hashers(desired_capacity, bit_count);
+        let bits_per_hasher = (bit_count as f64 / number_of_hashers as f64).ceil() as usize;
+        Self {
+            bitset: Bitset::new(bits_per_hasher * number_of_hashers),
+            number_of_hashers,
+            bits_per_hasher,
+            hasher1: B1::new_with_seed(seed1.clone()),
+            hasher2: B2::new_with_seed(seed2.clone()),
+            seed1: Some(seed1),
+            seed2: Some(seed2),
+        }
+    }
     /// Approximate number of elements stored.
     /// Approximation technique taken from Wikipedia:
     /// > Wikipedia, ["Bloom filter"](https://en.wikipedia.org/wiki/Bloom_filter#Approximating_the_number_of_items_in_a_Bloom_filter) [Accessed: 02.12.2020]
@@ -88,18 +182,15 @@ where
     pub fn eq_configuration(&self, other: &Self) -> bool {
         self.number_of_hashers == other.number_of_hashers
             && self.bits_per_hasher == other.bits_per_hasher
+            && self.seed1 == other.seed1
+            && self.seed2 == other.seed2
     }
 
     fn index(i: usize, bits_per_hash: usize, hash_a: u64, hash_b: u64) -> usize {
         i * bits_per_hash
             + hash_a.wrapping_add((i as u64).wrapping_mul(hash_b)) as usize % bits_per_hash
     }
-}
-impl<H1, H2> KMBloomFilter<H1, H2>
-where
-    H1: Hasher + Clone,
-    H2: Hasher + Clone,
-{
+
     /// Creates a union of this bloom filter and 'other', which means 'contains' of the resulting
     /// bloom filter will always return true for elements inserted in either this bloom filter or in
     /// 'other' before creation.
@@ -122,7 +213,7 @@ where
     ///     let desired_capacity = 10_000;
     ///     let desired_fp_probability = 0.0001;
     ///
-    ///     // We initialize two new KMBloomFilter
+    ///     // We initialize two new SeededKMBloomFilter
     ///     let mut filter_one: KMBloomFilter<AHasher, DefaultHasher> = KMBloomFilter::new(
     ///         desired_capacity,
     ///         desired_fp_probability
@@ -162,6 +253,8 @@ where
             bits_per_hasher: self.bits_per_hasher,
             hasher1: self.hasher1.clone(),
             hasher2: self.hasher2.clone(),
+            seed1: self.seed1.clone(),
+            seed2: self.seed2.clone(),
         }
     }
 
@@ -193,7 +286,7 @@ where
     ///     let desired_capacity = 10_000;
     ///     let desired_fp_probability = 0.0001;
     ///
-    ///     // We initialize two new KMBloomFilter
+    ///     // We initialize two new SeededKMBloomFilter
     ///     let mut filter_one: KMBloomFilter<AHasher, DefaultHasher> = KMBloomFilter::new(
     ///         desired_capacity,
     ///         desired_fp_probability
@@ -232,6 +325,8 @@ where
             bits_per_hasher: self.bits_per_hasher,
             hasher1: self.hasher1.clone(),
             hasher2: self.hasher2.clone(),
+            seed1: self.seed1.clone(),
+            seed2: self.seed2.clone(),
         }
     }
 
@@ -251,17 +346,20 @@ where
     }
 }
 
-impl<H1, H2> KMBloomFilter<H1, H2>
+impl<H1, H2, S1, S2> SeededKMBloomFilter<H1, H2, S1, S2>
 where
     H1: Hasher + Default + Clone,
     H2: Hasher + Default + Clone,
+    S1: Clone + PartialEq,
+    S2: Clone + PartialEq,
 {
-    /// Initialize a new instance of KMBloomFilter that guarantees that the false positive rate
+    /// Initialize a new instance of SeededKMBloomFilter that guarantees that the false positive rate
     /// is less than *desired_false_positive_probability* for up to *desired_capacity*
     /// elements.
     ///
-    /// KMBloomFilter uses two hash functions *H1* and *H2* to simulate an arbitrary number of hash
-    /// functions. *H1* and *H2* are specified as type parameters (see examples): KMBloomFilter<H1, H2>.
+    /// SeededKMBloomFilter uses two hash functions *H1* and *H2* to simulate an arbitrary number of hash
+    /// functions. *H1* and *H2* are specified as type parameters (see examples): SeededKMBloomFilter<H1, H2, S1, S2>.
+    /// In this case *S1* and *S2* are not used, since we use default values for types *H1* and *H2*.
     ///
     /// ***You have to use two different hash functions for *H1* and *H2*!***
     ///
@@ -281,7 +379,7 @@ where
     ///     // We want to assure that the chance of a false positive is less than 0.0001.
     ///     let desired_fp_probability = 0.0001;
     ///
-    ///     // We initialize a new KMBloomFilter by specifying the desired Hashers as type parameters
+    ///     // We initialize a new SeededKMBloomFilter by specifying the desired Hashers as type parameters
     ///     let mut filter: KMBloomFilter<AHasher, DefaultHasher> =
     ///         KMBloomFilter::new(desired_capacity, desired_fp_probability);
     /// }
@@ -299,24 +397,34 @@ where
             bits_per_hasher,
             hasher1: H1::default(),
             hasher2: H2::default(),
+            seed1: None,
+            seed2: None,
         }
     }
 }
 
-impl<H1, H2> Debug for KMBloomFilter<H1, H2>
+impl<H1, H2, S1, S2> Debug for SeededKMBloomFilter<H1, H2, S1, S2>
 where
     H1: Hasher + Clone,
     H2: Hasher + Clone,
+    S1: Clone + PartialEq + Debug,
+    S2: Clone + PartialEq + Debug,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "KMBloomFilter{{{:?}}}", self.bitset)
+        write!(
+            f,
+            "SeededKMBloomFilter{{seed1: {:?}, seed2: {:?}, {:?}}}",
+            self.seed1, self.seed2, self.bitset
+        )
     }
 }
 
-impl<H1, H2> BloomFilter for KMBloomFilter<H1, H2>
+impl<H1, H2, S1, S2> BloomFilter for SeededKMBloomFilter<H1, H2, S1, S2>
 where
     H1: Hasher + Clone,
     H2: Hasher + Clone,
+    S1: Clone + PartialEq,
+    S2: Clone + PartialEq,
 {
     fn insert<T>(&mut self, data: &T)
     where

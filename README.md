@@ -68,6 +68,14 @@ The `KMBloomFilter` lets you choose which hash functions should be used.
 KMBloomFilter<AHasher, DefaultHasher> = KMBloomFilter::new(desired_capacity, desired_fp_probability);
 ```
 
+### `SeededKMBloomFilter`
+
+The `SeededKMBloomFilter` lets you choose which hash functions with which seeds should be used. A struct implementing the `HasherBuilder` trait is needed to initialize those hash functions with seeds (in this case `AHasherBuilder`).
+
+```rust
+SeededKMBloomFilter::new_with_seeds::<AHasherBuilder, AHasherBuilder>(desired_capacity, desired_fp_probability, seed1, seed2);
+```
+
 ### `SingleHasherBloomFilter`
 
 The `SingleHasherBloomFilter` requires no configuration as it uses only one specific hash function which is seeded automatically.

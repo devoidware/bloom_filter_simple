@@ -146,10 +146,10 @@ use std::{collections::hash_map::DefaultHasher, hash::Hash};
 
 mod bitset;
 mod km_bloom_filter;
-mod seeded_bloom_filter;
+mod single_hasher_bloom_filter;
 
-pub use km_bloom_filter::KMBloomFilter;
-pub use seeded_bloom_filter::SingleHasherBloomFilter;
+pub use km_bloom_filter::{HasherBuilder, KMBloomFilter, SeededKMBloomFilter};
+pub use single_hasher_bloom_filter::SingleHasherBloomFilter;
 
 /**
  A default implementation of KMBloomFilter using ahash::AHasher and collections::hash_map::DefaultHasher.
