@@ -11,8 +11,9 @@ homepage = "http://devoidware.com"
 repository = "https://github.com/devoidware/bloom_filter_simple"
 
 [dependencies]
-ahash = { version = "0.6.1", default-features = false }
+ahash = { version = "0.7.2", default-features = false }
 
 [dev-dependencies]
 xxhash-rust = { version = "0.8.0-beta.3", features = ["xxh3"] }
 rand = "0.7.3"
+highway = "0.6.3"

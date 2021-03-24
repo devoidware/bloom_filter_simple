@@ -1,11 +1,11 @@
-use std::{collections::hash_map::DefaultHasher, hash::Hasher};
-
 use ahash::AHasher;
 use bloom_filter_simple::{
     BloomFilter, DefaultBloomFilter, HasherBuilder, KMBloomFilter, SeededKMBloomFilter,
     SingleHasherBloomFilter,
 };
+use highway::{HighwayHash, HighwayHasher, Key};
 use rand::{distributions::Uniform, prelude::StdRng, Rng, SeedableRng};
+use std::{collections::hash_map::DefaultHasher, hash::Hasher};
 use xxhash_rust::xxh3;
 
 #[test]
@@ -135,6 +135,41 @@ fn false_positive_probability_random_seeded_ahash() {
         (1, 1),
         (2, 2),
     );
+
+    test_bloom_filter_probability_random(
+        desired_capacity,
+        false_positive_probability,
+        bloom_filter,
+        relative_error_margin,
+    );
+}
+
+#[test]
+fn false_positive_probability_random_highway() {
+    struct HighwayHasherBuilder;
+    #[derive(Clone, Debug)]
+    struct KeyComparator(Key);
+    impl PartialEq for KeyComparator {
+        fn eq(&self, other: &Self) -> bool {
+            self.0 .0 == other.0 .0
+        }
+    }
+
+    impl HasherBuilder<HighwayHasher, KeyComparator> for HighwayHasherBuilder {
+        fn new_with_seed(seed: KeyComparator) -> HighwayHasher {
+            HighwayHasher::new(seed.0)
+        }
+    }
+    let desired_capacity = 1_000_000;
+    let false_positive_probability = 0.001;
+    let relative_error_margin = 0.01;
+    let bloom_filter =
+        SeededKMBloomFilter::new_with_seeds::<HighwayHasherBuilder, HighwayHasherBuilder>(
+            desired_capacity,
+            false_positive_probability,
+            KeyComparator(Key([1, 2, 3, 4])),
+            KeyComparator(Key([5, 6, 7, 8])),
+        );
 
     test_bloom_filter_probability_random(
         desired_capacity,
