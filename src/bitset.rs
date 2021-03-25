@@ -1,5 +1,10 @@
+#[cfg(any(feature = "union"))]
+use crate::ConfigEq;
+#[cfg(feature = "union")]
+use crate::Union;
 use std::fmt::Debug;
 
+#[derive(Clone)]
 pub struct Bitset {
     bytes: Vec<u8>,
     length: usize,
@@ -63,24 +68,6 @@ impl Bitset {
         self.len() - self.count_ones()
     }
 
-    pub fn union(&self, other: &Self) -> Self {
-        if self.length != other.length {
-            panic!(
-                "unable to union bitsets with different lengths: {} and {}",
-                self.length, other.length
-            );
-        }
-        Self {
-            bytes: self
-                .bytes
-                .iter()
-                .zip(other.bytes.iter())
-                .map(|(a, b)| a | b)
-                .collect(),
-            length: self.length,
-        }
-    }
-
     pub fn intersect(&self, other: &Self) -> Self {
         if self.length != other.length {
             panic!(
@@ -94,6 +81,34 @@ impl Bitset {
                 .iter()
                 .zip(other.bytes.iter())
                 .map(|(a, b)| a & b)
+                .collect(),
+            length: self.length,
+        }
+    }
+}
+
+#[cfg(any(feature = "union"))]
+impl ConfigEq for Bitset {
+    fn config_eq(&self, other: &Self) -> bool {
+        self.length == other.length
+    }
+}
+
+#[cfg(feature = "union")]
+impl Union for Bitset {
+    fn union(&self, other: &Self) -> Self {
+        if !self.config_eq(other) {
+            panic!(
+                "unable to union bitsets with different lengths: {} and {}",
+                self.length, other.length
+            );
+        }
+        Self {
+            bytes: self
+                .bytes
+                .iter()
+                .zip(other.bytes.iter())
+                .map(|(a, b)| a | b)
                 .collect(),
             length: self.length,
         }
@@ -294,6 +309,7 @@ mod tests {
         assert_eq!(9, bitset.count_zeros());
     }
 
+    #[cfg(feature = "union")]
     #[test]
     fn bitset_union_test() {
         let mut bitset_a = Bitset::new(6);

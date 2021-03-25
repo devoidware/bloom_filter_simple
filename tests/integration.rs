@@ -1,9 +1,11 @@
 use ahash::AHasher;
+#[cfg(feature = "union")]
+use bloom_filter_simple::Union;
 use bloom_filter_simple::{
     BloomFilter, DefaultBloomFilter, HasherBuilder, KMBloomFilter, SeededKMBloomFilter,
     SingleHasherBloomFilter,
 };
-use highway::{HighwayHash, HighwayHasher, Key};
+use highway::{HighwayHasher, Key};
 use rand::{distributions::Uniform, prelude::StdRng, Rng, SeedableRng};
 use std::{collections::hash_map::DefaultHasher, hash::Hasher};
 use xxhash_rust::xxh3;
@@ -343,6 +345,7 @@ fn insert_and_check_its_there_with_millions_of_values() {
     }
 }
 
+#[cfg(feature = "union")]
 #[test]
 fn km_bloom_filter_union_test() {
     let desired_capacity = 1_000_000;

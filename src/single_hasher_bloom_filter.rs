@@ -1,6 +1,6 @@
 use crate::{
     approximate_element_count, approximate_false_positive_probability, bitset::Bitset,
-    optimal_bit_count, optimal_number_of_hashers, BloomFilter,
+    optimal_bit_count, optimal_number_of_hashers, BloomFilter, BloomFilterData,
 };
 use ahash::AHasher;
 use std::fmt::Debug;
@@ -10,6 +10,7 @@ use std::hash::{Hash, Hasher};
 /// of hash functions.
 ///
 /// Internally, the implementation uses *ahash::AHasher*.
+#[derive(Clone)]
 pub struct SingleHasherBloomFilter {
     number_of_hashers: usize,
     bitset: Bitset,
@@ -80,60 +81,6 @@ impl SingleHasherBloomFilter {
             self.bits_per_hasher,
             self.approximate_element_count(),
         )
-    }
-
-    /// Creates a union of this bloom filter and 'other', which means 'contains' of the resulting
-    /// bloom filter will always return true for elements inserted in either this bloom filter or in
-    /// 'other' before creation.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the desired capacity or desired false positive probability of 'self' and 'other'
-    /// differ.
-    ///
-    /// # Examples
-    ///
-    /// Union of two bloom filters with the same configuration.
-    /// ```
-    /// use bloom_filter_simple::{BloomFilter,SingleHasherBloomFilter};
-    ///
-    /// fn main() {
-    ///     // The configuration of both bloom filters has to be the same
-    ///     let desired_capacity = 10_000;
-    ///     let desired_fp_probability = 0.0001;
-    ///
-    ///     // We initialize two new SingleHasherBloomFilter
-    ///     let mut filter_one = SingleHasherBloomFilter::new(desired_capacity, desired_fp_probability);
-    ///     let mut filter_two = SingleHasherBloomFilter::new(desired_capacity, desired_fp_probability);
-    ///
-    ///     // Insert elements into the first filter
-    ///     filter_one.insert(&0);
-    ///     filter_one.insert(&1);
-    ///
-    ///     // Insert elements into the second filter
-    ///     filter_two.insert(&2);
-    ///     filter_two.insert(&3);
-    ///     
-    ///     // Now we retrieve the union of both filters
-    ///     let filter_union = filter_one.union(&filter_two);
-    ///
-    ///     // The union will return true for a 'contains' check for the elements inserted
-    ///     // previously into at least one of the constituent filters.
-    ///     assert_eq!(true, filter_union.contains(&0));
-    ///     assert_eq!(true, filter_union.contains(&1));
-    ///     assert_eq!(true, filter_union.contains(&2));
-    ///     assert_eq!(true, filter_union.contains(&3));
-    /// }
-    /// ```
-    pub fn union(&self, other: &Self) -> Self {
-        if !self.eq_configuration(other) {
-            panic!("unable to union k-m bloom filters with different configurations");
-        }
-        Self {
-            number_of_hashers: self.number_of_hashers,
-            bitset: self.bitset.union(&other.bitset),
-            bits_per_hasher: self.bits_per_hasher,
-        }
     }
 
     /// Creates a intersection of this bloom filter and 'other', which means 'contains' of the resulting
@@ -240,5 +187,25 @@ impl BloomFilter for SingleHasherBloomFilter {
         }
 
         return true;
+    }
+}
+
+impl BloomFilterData for SingleHasherBloomFilter {
+    type DataType = crate::bitset::Bitset;
+
+    fn number_of_hashers(&self) -> usize {
+        self.number_of_hashers
+    }
+
+    fn bits_per_hasher(&self) -> usize {
+        self.bits_per_hasher
+    }
+
+    fn data(&self) -> &Self::DataType {
+        &self.bitset
+    }
+
+    fn set_data(&mut self, data: Self::DataType) {
+        self.bitset = data;
     }
 }

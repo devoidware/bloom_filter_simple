@@ -10,6 +10,10 @@ categories = ["algorithms", "data-structures"]
 homepage = "http://devoidware.com"
 repository = "https://github.com/devoidware/bloom_filter_simple"
 
+[features]
+default = []
+union = []
+
 [dependencies]
 ahash = { version = "0.7.2", default-features = false }
 

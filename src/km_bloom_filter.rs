@@ -5,7 +5,7 @@ use std::{
 
 use crate::{
     approximate_element_count, approximate_false_positive_probability, bitset::Bitset,
-    optimal_bit_count, optimal_number_of_hashers, BloomFilter,
+    optimal_bit_count, optimal_number_of_hashers, BloomFilter, BloomFilterData,
 };
 
 pub type KMBloomFilter<H1, H2> = SeededKMBloomFilter<H1, H2, (), ()>;
@@ -67,6 +67,7 @@ where
 ///     assert_eq!(true, filter.contains(&"Some text"));
 /// }
 /// ```
+#[derive(Clone)]
 pub struct SeededKMBloomFilter<H1, H2, S1, S2>
 where
     H1: Hasher + Clone,
@@ -189,73 +190,6 @@ where
     fn index(i: usize, bits_per_hash: usize, hash_a: u64, hash_b: u64) -> usize {
         i * bits_per_hash
             + hash_a.wrapping_add((i as u64).wrapping_mul(hash_b)) as usize % bits_per_hash
-    }
-
-    /// Creates a union of this bloom filter and 'other', which means 'contains' of the resulting
-    /// bloom filter will always return true for elements inserted in either this bloom filter or in
-    /// 'other' before creation.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the desired capacity or desired false positive probability of 'self' and 'other'
-    /// differ.
-    ///
-    /// # Examples
-    ///
-    /// Union of two bloom filters with the same configuration.
-    /// ```
-    /// use bloom_filter_simple::{BloomFilter,KMBloomFilter};
-    /// use ahash::AHasher;
-    /// use std::collections::hash_map::DefaultHasher;
-    ///
-    /// fn main() {
-    ///     // The configuration of both bloom filters has to be the same
-    ///     let desired_capacity = 10_000;
-    ///     let desired_fp_probability = 0.0001;
-    ///
-    ///     // We initialize two new SeededKMBloomFilter
-    ///     let mut filter_one: KMBloomFilter<AHasher, DefaultHasher> = KMBloomFilter::new(
-    ///         desired_capacity,
-    ///         desired_fp_probability
-    ///     );
-    ///
-    ///     let mut filter_two: KMBloomFilter<AHasher, DefaultHasher> = KMBloomFilter::new(
-    ///         desired_capacity,
-    ///         desired_fp_probability
-    ///     );
-    ///
-    ///     // Insert elements into the first filter
-    ///     filter_one.insert(&0);
-    ///     filter_one.insert(&1);
-    ///
-    ///     // Insert elements into the second filter
-    ///     filter_two.insert(&2);
-    ///     filter_two.insert(&3);
-    ///     
-    ///     // Now we retrieve the union of both filters
-    ///     let filter_union = filter_one.union(&filter_two);
-    ///
-    ///     // The union will return true for a 'contains' check for the elements inserted
-    ///     // previously into at least one of the constituent filters.
-    ///     assert_eq!(true, filter_union.contains(&0));
-    ///     assert_eq!(true, filter_union.contains(&1));
-    ///     assert_eq!(true, filter_union.contains(&2));
-    ///     assert_eq!(true, filter_union.contains(&3));
-    /// }
-    /// ```
-    pub fn union(&self, other: &Self) -> Self {
-        if !self.eq_configuration(other) {
-            panic!("unable to union k-m bloom filters with different configurations");
-        }
-        Self {
-            number_of_hashers: self.number_of_hashers,
-            bitset: self.bitset.union(&other.bitset),
-            bits_per_hasher: self.bits_per_hasher,
-            hasher1: self.hasher1.clone(),
-            hasher2: self.hasher2.clone(),
-            seed1: self.seed1.clone(),
-            seed2: self.seed2.clone(),
-        }
     }
 
     /// Creates a intersection of this bloom filter and 'other', which means 'contains' of the resulting
@@ -454,5 +388,31 @@ where
         }
 
         return true;
+    }
+}
+
+impl<H1, H2, S1, S2> BloomFilterData for SeededKMBloomFilter<H1, H2, S1, S2>
+where
+    H1: Hasher + Clone,
+    H2: Hasher + Clone,
+    S1: Clone + PartialEq,
+    S2: Clone + PartialEq,
+{
+    type DataType = crate::bitset::Bitset;
+
+    fn number_of_hashers(&self) -> usize {
+        self.number_of_hashers
+    }
+
+    fn data(&self) -> &Self::DataType {
+        &self.bitset
+    }
+
+    fn bits_per_hasher(&self) -> usize {
+        self.bits_per_hasher
+    }
+
+    fn set_data(&mut self, data: Self::DataType) {
+        self.bitset = data;
     }
 }

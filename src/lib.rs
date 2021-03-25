@@ -175,6 +175,15 @@ pub use single_hasher_bloom_filter::SingleHasherBloomFilter;
 */
 pub type DefaultBloomFilter = KMBloomFilter<ahash::AHasher, DefaultHasher>;
 
+pub trait BloomFilterData {
+    type DataType;
+
+    fn number_of_hashers(&self) -> usize;
+    fn bits_per_hasher(&self) -> usize;
+    fn data(&self) -> &Self::DataType;
+    fn set_data(&mut self, data: Self::DataType);
+}
+
 /// This trait defines the basic functionality supported by the bloom filters in this library.
 ///
 pub trait BloomFilter {
@@ -231,6 +240,96 @@ pub trait BloomFilter {
     /// }
     /// ```
     fn contains<T: Hash>(&self, data: &T) -> bool;
+}
+
+#[cfg(any(feature = "union"))]
+pub trait ConfigEq {
+    fn config_eq(&self, other: &Self) -> bool;
+}
+
+#[cfg(any(feature = "union"))]
+impl<T, D> ConfigEq for T
+where
+    T: BloomFilterData<DataType = D>,
+{
+    fn config_eq(&self, other: &Self) -> bool {
+        self.number_of_hashers() == other.number_of_hashers()
+            && self.bits_per_hasher() == other.bits_per_hasher()
+    }
+}
+
+#[cfg(feature = "union")]
+pub trait Union {
+    fn union(&self, other: &Self) -> Self;
+}
+
+#[cfg(feature = "union")]
+impl<T, D> Union for T
+where
+    T: BloomFilterData<DataType = D> + Clone,
+    D: Union,
+{
+    /// Creates a union of this bloom filter and 'other', which means 'contains' of the resulting
+    /// bloom filter will always return true for elements inserted in either this bloom filter or in
+    /// 'other' before creation.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the desired capacity or desired false positive probability of 'self' and 'other'
+    /// differ.
+    ///
+    /// # Examples
+    ///
+    /// Union of two bloom filters with the same configuration.
+    /// ```
+    /// use bloom_filter_simple::{BloomFilter,KMBloomFilter,Union};
+    /// use ahash::AHasher;
+    /// use std::collections::hash_map::DefaultHasher;
+    ///
+    /// fn main() {
+    ///     // The configuration of both bloom filters has to be the same
+    ///     let desired_capacity = 10_000;
+    ///     let desired_fp_probability = 0.0001;
+    ///
+    ///     // We initialize two new SeededKMBloomFilter
+    ///     let mut filter_one: KMBloomFilter<AHasher, DefaultHasher> = KMBloomFilter::new(
+    ///         desired_capacity,
+    ///         desired_fp_probability
+    ///     );
+    ///
+    ///     let mut filter_two: KMBloomFilter<AHasher, DefaultHasher> = KMBloomFilter::new(
+    ///         desired_capacity,
+    ///         desired_fp_probability
+    ///     );
+    ///
+    ///     // Insert elements into the first filter
+    ///     filter_one.insert(&0);
+    ///     filter_one.insert(&1);
+    ///
+    ///     // Insert elements into the second filter
+    ///     filter_two.insert(&2);
+    ///     filter_two.insert(&3);
+    ///     
+    ///     // Now we retrieve the union of both filters
+    ///     let filter_union = filter_one.union(&filter_two);
+    ///
+    ///     // The union will return true for a 'contains' check for the elements inserted
+    ///     // previously into at least one of the constituent filters.
+    ///     assert_eq!(true, filter_union.contains(&0));
+    ///     assert_eq!(true, filter_union.contains(&1));
+    ///     assert_eq!(true, filter_union.contains(&2));
+    ///     assert_eq!(true, filter_union.contains(&3));
+    /// }
+    /// ```
+    fn union(&self, other: &Self) -> Self {
+        if !self.config_eq(other) {
+            panic!("unable to union two bloom filters with different configurations");
+        }
+        let mut new_object = self.clone();
+        let data = self.data().union(other.data());
+        new_object.set_data(data);
+        new_object
+    }
 }
 
 /// Calculate the optimal bit count to satisfy the desired constraints.
